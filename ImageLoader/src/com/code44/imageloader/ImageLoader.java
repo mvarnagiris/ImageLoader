@@ -6,11 +6,14 @@ import java.util.concurrent.RejectedExecutionException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.widget.ImageView;
 
+import com.code44.imageloader.ImageSettings.SizeType;
 import com.code44.imageloader.cache.ImageCache;
 import com.code44.imageloader.fetcher.FileResult;
 import com.code44.imageloader.info.BitmapInfo;
@@ -235,10 +238,98 @@ public class ImageLoader
 		protected Bitmap processFile(ImageInfo imageInfo, File file)
 		{
 			Bitmap bitmap = null;
-			
-			// TODO Implement
-			
+
+			// Read settings
+			final ImageSettings settings = imageInfo.getImageSettings();
+			final int reqWidth = settings.getWidth();
+			final int reqHeight = settings.getHeight();
+			final SizeType sizeType = settings.getSizeType();
+
+			// Check bitmap dimensions
+			final BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+			// Calculate inSampleSize
+			options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.getDownSampleBy());
+
+			// Decode bitmap with inSampleSize set
+			options.inJustDecodeBounds = false;
+			Bitmap tempBitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
+
+			// Resize and crop bitmap if necessary
+			switch (sizeType)
+			{
+				case FILL:
+					final Matrix m = new Matrix();
+
+					// Translate to center
+					m.setTranslate((reqWidth - options.outWidth) / 2, (reqHeight - options.outHeight) / 2);
+
+					// Scale to until all size is filled
+					final float scale;
+					if (options.outWidth - reqWidth < options.outHeight - reqHeight)
+						scale = (float) reqWidth / (float) options.outWidth;
+					else
+						scale = (float) reqHeight / (float) options.outHeight;
+					m.postScale(scale, scale, reqWidth / 2, reqHeight / 2);
+					bitmap = Bitmap.createBitmap(tempBitmap, 0, 0, reqWidth, reqHeight, m, true);
+					tempBitmap.recycle();
+					tempBitmap = null;
+					break;
+
+				case FIT:
+					// TODO Implement
+					break;
+
+				case MAX:
+					// TODO Implement
+					break;
+
+				default:
+					break;
+			}
+
 			return bitmap;
+		}
+
+		protected int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight, SizeType sizeType, int downSampleBy)
+		{
+			int inSampleSize = 1;
+
+			// If size type is NONE then no need to calculate sample size
+			if (sizeType == SizeType.NONE)
+				return inSampleSize + downSampleBy;
+
+			// Calculate sample size based on SizeType
+			switch (sizeType)
+			{
+				case FILL:
+					if (height > reqHeight && width > reqWidth)
+					{
+						if (height - reqHeight < width - reqWidth)
+							inSampleSize = Math.round((float) height / (float) reqHeight);
+						else
+							inSampleSize = Math.round((float) width / (float) reqWidth);
+					}
+					break;
+
+				case FIT:
+				case MAX:
+					if (height > reqHeight || width > reqWidth)
+					{
+						if (height - reqHeight > width - reqWidth)
+							inSampleSize = Math.round((float) height / (float) reqHeight);
+						else
+							inSampleSize = Math.round((float) width / (float) reqWidth);
+					}
+					break;
+
+				default:
+					break;
+			}
+
+			return inSampleSize + downSampleBy;
 		}
 	}
 }

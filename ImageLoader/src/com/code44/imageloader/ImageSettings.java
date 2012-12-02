@@ -8,7 +8,7 @@ public class ImageSettings
 {
 	public enum SizeType
 	{
-		MAX, FIT, FILL
+		NONE, MAX, FIT, FILL
 	}
 
 	protected int				width					= 0;
