@@ -1,21 +1,16 @@
 package com.code44.imageloader;
 
-import java.io.File;
 import java.util.concurrent.RejectedExecutionException;
 
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.code44.imageloader.ImageSettings.SizeType;
 import com.code44.imageloader.cache.ImageCache;
-import com.code44.imageloader.fetcher.FileResult;
 import com.code44.imageloader.info.BitmapInfo;
 
 /**
@@ -98,7 +93,7 @@ public class ImageLoader
 		final ImageInfo imageInfo = new ImageInfo(imageView, bitmapInfo, imageSettings, loaderSettings.isLoggingOn());
 
 		// Try to get bitmap from memory cache
-		Bitmap bitmap = imageCache.getFromMemory(imageInfo);
+		Bitmap bitmap = imageCache.get(imageInfo);
 		if (bitmap != null)
 		{
 			if (isLoggingOn)
@@ -108,7 +103,7 @@ public class ImageLoader
 		}
 
 		// Try to get smaller image if necessary
-		bitmap = imageSettings.showSmallerIfAvailable ? imageCache.getFromMemorySmaller(imageInfo) : null;
+		bitmap = imageSettings.showSmallerIfAvailable ? imageCache.getSmallerIfAvailable(imageInfo) : null;
 		if (bitmap != null)
 		{
 			if (isLoggingOn)
@@ -164,45 +159,29 @@ public class ImageLoader
 		protected Bitmap doInBackground(Void... params)
 		{
 			final boolean isLoggingOn = imageInfo.isLoggingOn() && BuildConfig.DEBUG;
-			boolean deleteFile = false;
-			File file = null;
 
-			// Try to get original bitmap file
-			file = isCancelled() ? null : imageCache.getFile(imageInfo);
-			if (isLoggingOn && file != null)
-				Log.i(TAG, "Bitmap file found. [" + imageInfo.toString() + "]");
+			// Try to get original bitmap from file cache
+			if (isCancelled())
+				return null;
+			Bitmap bitmap = imageCache.get(imageInfo);
+			if (isLoggingOn && bitmap != null)
+				Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
 
-			// If file was not found, try to fetch it
-			if (file == null && !isCancelled())
+			// If bitmap was not found in file cache, try to fetch it
+			if (isCancelled())
+				return null;
+			if (bitmap == null)
 			{
-				final FileResult fileResult = imageInfo.fetchBitmapFile(context);
-				if (fileResult != null)
+				bitmap = imageInfo.loadBitmap(context);
+				if (bitmap != null)
 				{
 					if (isLoggingOn)
-						Log.i(TAG, "File fetched. [" + imageInfo.toString() + "]");
-					file = fileResult.getFile();
-					deleteFile = fileResult.isDeleteFile();
+						Log.i(TAG, "Bitmap fetched. [" + imageInfo.toString() + "]");
 				}
 			}
 
-			// Process file to bitmap
-			Bitmap bitmap = null;
-			if (file != null)
-			{
-				bitmap = processFile(imageInfo, file);
-				if (isLoggingOn && bitmap != null)
-					Log.i(TAG, "Bitmap processed from file. [" + imageInfo.toString() + "]");
-			}
-
-			// Delete file if necessary
-			if (file != null && deleteFile)
-			{
-				if (file.delete() && isLoggingOn)
-					Log.i(TAG, "Temporary file deleted. [" + imageInfo.toString() + "]");
-			}
-
 			// Put to memory cache
-			if (bitmap != null && imageCache.putToMemory(imageInfo, bitmap) && isLoggingOn)
+			if (bitmap != null && imageCache.put(imageInfo, bitmap) && isLoggingOn)
 				Log.i(TAG, "Bitmap added to memory cache. [" + imageInfo.toString() + "]");
 
 			return bitmap;
@@ -230,106 +209,6 @@ public class ImageLoader
 		public ImageInfo getImageInfo()
 		{
 			return imageInfo;
-		}
-
-		// Protected methods
-		// ------------------------------------------------------------------------------------------------------------------------------------
-
-		protected Bitmap processFile(ImageInfo imageInfo, File file)
-		{
-			Bitmap bitmap = null;
-
-			// Read settings
-			final ImageSettings settings = imageInfo.getImageSettings();
-			final int reqWidth = settings.getWidth();
-			final int reqHeight = settings.getHeight();
-			final SizeType sizeType = settings.getSizeType();
-
-			// Check bitmap dimensions
-			final BitmapFactory.Options options = new BitmapFactory.Options();
-			options.inJustDecodeBounds = true;
-			BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-
-			// Calculate inSampleSize
-			options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.getDownSampleBy());
-
-			// Decode bitmap with inSampleSize set
-			options.inJustDecodeBounds = false;
-			Bitmap tempBitmap = BitmapFactory.decodeFile(file.getAbsolutePath(), options);
-
-			// Resize and crop bitmap if necessary
-			switch (sizeType)
-			{
-				case FILL:
-					final Matrix m = new Matrix();
-
-					// Translate to center
-					m.setTranslate((reqWidth - options.outWidth) / 2, (reqHeight - options.outHeight) / 2);
-
-					// Scale to until all size is filled
-					final float scale;
-					if (options.outWidth - reqWidth < options.outHeight - reqHeight)
-						scale = (float) reqWidth / (float) options.outWidth;
-					else
-						scale = (float) reqHeight / (float) options.outHeight;
-					m.postScale(scale, scale, reqWidth / 2, reqHeight / 2);
-					bitmap = Bitmap.createBitmap(tempBitmap, 0, 0, reqWidth, reqHeight, m, true);
-					tempBitmap.recycle();
-					tempBitmap = null;
-					break;
-
-				case FIT:
-					// TODO Implement
-					break;
-
-				case MAX:
-					// TODO Implement
-					break;
-
-				default:
-					break;
-			}
-
-			return bitmap;
-		}
-
-		protected int calculateInSampleSize(int width, int height, int reqWidth, int reqHeight, SizeType sizeType, int downSampleBy)
-		{
-			int inSampleSize = 1;
-
-			// If size type is NONE then no need to calculate sample size
-			if (sizeType == SizeType.NONE)
-				return inSampleSize + downSampleBy;
-
-			// Calculate sample size based on SizeType
-			switch (sizeType)
-			{
-				case FILL:
-					if (height > reqHeight && width > reqWidth)
-					{
-						if (height - reqHeight < width - reqWidth)
-							inSampleSize = Math.round((float) height / (float) reqHeight);
-						else
-							inSampleSize = Math.round((float) width / (float) reqWidth);
-					}
-					break;
-
-				case FIT:
-				case MAX:
-					if (height > reqHeight || width > reqWidth)
-					{
-						if (height - reqHeight > width - reqWidth)
-							inSampleSize = Math.round((float) height / (float) reqHeight);
-						else
-							inSampleSize = Math.round((float) width / (float) reqWidth);
-					}
-					break;
-
-				default:
-					break;
-			}
-
-			return inSampleSize + downSampleBy;
 		}
 	}
 }

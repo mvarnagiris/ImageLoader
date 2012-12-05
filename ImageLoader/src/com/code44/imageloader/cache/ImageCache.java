@@ -1,7 +1,5 @@
 package com.code44.imageloader.cache;
 
-import java.io.File;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
@@ -49,27 +47,17 @@ public class ImageCache
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public Bitmap getFromMemory(ImageInfo imageInfo)
+	public Bitmap get(ImageInfo imageInfo)
 	{
 		return null;
 	}
 
-	public Bitmap getFromMemorySmaller(ImageInfo imageInfo)
+	public Bitmap getSmallerIfAvailable(ImageInfo imageInfo)
 	{
 		return null;
 	}
 
-	public File getFile(ImageInfo imageInfo)
-	{
-		return null;
-	}
-
-	public boolean putToMemory(ImageInfo imageInfo, Bitmap bitmap)
-	{
-		return false;
-	}
-
-	public boolean putToFile(ImageInfo imageInfo, Bitmap bitmap)
+	public boolean put(ImageInfo imageInfo, Bitmap bitmap)
 	{
 		return false;
 	}

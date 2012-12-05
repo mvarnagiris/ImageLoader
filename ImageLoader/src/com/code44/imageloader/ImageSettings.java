@@ -6,11 +6,6 @@ import com.code44.imageloader.processor.ImageProcessor;
 
 public class ImageSettings
 {
-	public enum SizeType
-	{
-		NONE, MAX, FIT, FILL
-	}
-
 	protected int				width					= 0;
 	protected int				height					= 0;
 	protected int				downSampleBy			= 0;
@@ -21,7 +16,6 @@ public class ImageSettings
 	protected boolean			showSmallerIfAvailable	= true;
 	protected boolean			useMemoryCache			= true;
 	protected boolean			useFileCache			= true;
-	protected SizeType			sizeType				= SizeType.FILL;
 
 	// Getters/Setters
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -74,11 +68,6 @@ public class ImageSettings
 	public boolean isUseFileCache()
 	{
 		return useFileCache;
-	}
-
-	public SizeType getSizeType()
-	{
-		return sizeType;
 	}
 
 	// Builder
@@ -158,10 +147,5 @@ public class ImageSettings
 			return this;
 		}
 
-		public Builder withSizeType(SizeType sizeType)
-		{
-			imageSettings.sizeType = sizeType;
-			return this;
-		}
 	}
 }

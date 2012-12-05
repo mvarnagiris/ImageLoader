@@ -1,14 +1,13 @@
 package com.code44.imageloader;
 
-import java.io.File;
 import java.lang.ref.WeakReference;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.widget.ImageView;
 
 import com.code44.imageloader.ImageLoader.GetBitmapTask;
-import com.code44.imageloader.fetcher.FileFetcher;
-import com.code44.imageloader.fetcher.FileResult;
+import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.info.BitmapInfo;
 
 public class ImageInfo
@@ -79,13 +78,14 @@ public class ImageInfo
 	}
 
 	/**
-	 * Wrapper method that just calls {@link FileFetcher#getFile(ImageInfo)}.
+	 * Wrapper method loads bitmap for this {@link ImageInfo}.
 	 * 
-	 * @return {@link File} that is returned from {@link FileFetcher#getFile(ImageInfo)}.
+	 * @return {@link Bitmap}.
 	 */
-	public FileResult fetchBitmapFile(Context context)
+	public Bitmap loadBitmap(Context context)
 	{
-		return bitmapInfo.getFileFetcher(context).getFile(this);
+		final BitmapData bitmapData = bitmapInfo.getBitmapDataGetter(context).getBitmapData(this);
+		return bitmapInfo.getBitmapParser(context).parseBitmap(this, bitmapData);
 	}
 
 	/**

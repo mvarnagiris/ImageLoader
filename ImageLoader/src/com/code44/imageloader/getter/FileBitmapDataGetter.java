@@ -1,4 +1,4 @@
-package com.code44.imageloader.fetcher;
+package com.code44.imageloader.getter;
 
 import java.io.File;
 
@@ -6,33 +6,39 @@ import android.util.Log;
 
 import com.code44.imageloader.BuildConfig;
 import com.code44.imageloader.ImageInfo;
-import com.code44.imageloader.ImageLoader;
+import com.code44.imageloader.getter.data.FileBitmapData;
+import com.code44.imageloader.getter.data.BitmapData;
+import com.code44.imageloader.getter.parser.BitmapParser;
 import com.code44.imageloader.info.FileBitmapInfo;
 
-public class FileFetcher
+/**
+ * Singleton. Creates an instance of {@link FileBitmapData}. Use this for any {@link BitmapParser} that can handle this type of instance.
+ * 
+ * @author Mantas Varnagiris
+ */
+public class FileBitmapDataGetter implements BitmapDataGetter
 {
-	public static final String	TAG			= ImageLoader.TAG + " - FileFetcher";
-
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	private static FileFetcher	instance	= null;
+	private static FileBitmapDataGetter	instance	= null;
 
-	public static FileFetcher getDefault()
+	public static FileBitmapDataGetter getDefault()
 	{
 		if (instance == null)
-			instance = new FileFetcher();
+			instance = new FileBitmapDataGetter();
 		return instance;
 	}
 
-	public FileFetcher()
+	public FileBitmapDataGetter()
 	{
 	}
 
-	// Public methods
+	// ImageGetter
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public FileResult getFile(ImageInfo imageInfo)
+	@Override
+	public BitmapData getBitmapData(ImageInfo imageInfo)
 	{
 		final File file = new File(((FileBitmapInfo) imageInfo.getBitmapInfo()).getFilePath());
 		if (!file.exists() || file.isDirectory())
@@ -42,6 +48,6 @@ public class FileFetcher
 			return null;
 		}
 
-		return new FileResult(file, false);
+		return new FileBitmapData(file, false);
 	}
 }

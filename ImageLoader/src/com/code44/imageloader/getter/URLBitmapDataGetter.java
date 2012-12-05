@@ -1,4 +1,4 @@
-package com.code44.imageloader.fetcher;
+package com.code44.imageloader.getter;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -16,34 +16,43 @@ import android.util.Log;
 import com.code44.imageloader.BuildConfig;
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageLoader;
+import com.code44.imageloader.getter.data.BitmapData;
+import com.code44.imageloader.getter.data.FileBitmapData;
+import com.code44.imageloader.getter.parser.BitmapParser;
 import com.code44.imageloader.info.URLBitmapInfo;
 
-public class URLFileFetcher extends FileFetcher
+/**
+ * Singleton. Downloads image from URL and stores it to temporary file (this file should be deleted by {@link BitmapParser}). Creates an instance of
+ * {@link FileBitmapData}. Use this for any {@link BitmapParser} that can handle this type of instance.
+ * 
+ * @author Mantas Varnagiris
+ */
+public class URLBitmapDataGetter extends FileBitmapDataGetter
 {
-	private final Context			context;
+	private final Context				context;
 
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	private static URLFileFetcher	instance	= null;
+	private static URLBitmapDataGetter	instance	= null;
 
-	public static URLFileFetcher getDefault(Context context)
+	public static URLBitmapDataGetter getDefault(Context context)
 	{
 		if (instance == null)
-			instance = new URLFileFetcher(context);
+			instance = new URLBitmapDataGetter(context);
 		return instance;
 	}
 
-	public URLFileFetcher(Context context)
+	public URLBitmapDataGetter(Context context)
 	{
 		this.context = context.getApplicationContext();
 	}
 
-	// FileFetcher
+	// FileImageGetter
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override
-	public FileResult getFile(ImageInfo imageInfo)
+	public BitmapData getBitmapData(ImageInfo imageInfo)
 	{
 		final boolean isLoggingOn = BuildConfig.DEBUG && imageInfo.isLoggingOn();
 
@@ -74,7 +83,7 @@ public class URLFileFetcher extends FileFetcher
 			}
 			in.close();
 
-			return new FileResult(tempFile, true);
+			return new FileBitmapData(tempFile, true);
 		}
 		catch (final MalformedURLException e)
 		{
