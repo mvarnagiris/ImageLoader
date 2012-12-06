@@ -18,6 +18,12 @@ public class FileBitmapInfo extends BitmapInfo
 	protected final String		filePath;
 	protected final SizeType	sizeType;
 
+	public FileBitmapInfo(String filePath)
+	{
+		this.filePath = filePath;
+		this.sizeType = SizeType.FILL;
+	}
+
 	public FileBitmapInfo(String filePath, SizeType sizeType)
 	{
 		this.filePath = filePath;
