@@ -20,9 +20,19 @@ public class ImageSettings
 	// Getters/Setters
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
+	public void setWidth(int width)
+	{
+		this.width = width;
+	}
+
 	public int getWidth()
 	{
 		return width;
+	}
+
+	public void setHeight(int height)
+	{
+		this.height = height;
 	}
 
 	public int getHeight()
@@ -30,9 +40,20 @@ public class ImageSettings
 		return height;
 	}
 
+	public void setDownSampleBy(int downSampleBy)
+	{
+		this.downSampleBy = downSampleBy;
+	}
+
 	public int getDownSampleBy()
 	{
 		return downSampleBy;
+	}
+
+	public void setLoadingDrawable(Drawable loadingDrawable)
+	{
+		this.loadingDrawable = loadingDrawable;
+		// TODO If error drawable is null, set error drawable as well
 	}
 
 	public Drawable getLoadingDrawable()
@@ -40,9 +61,19 @@ public class ImageSettings
 		return loadingDrawable;
 	}
 
+	public void setErrorDrawable(Drawable errorDrawable)
+	{
+		this.errorDrawable = errorDrawable;
+	}
+
 	public Drawable getErrorDrawable()
 	{
 		return errorDrawable;
+	}
+
+	public void setImageProcessor(ImageProcessor imageProcessor)
+	{
+		this.imageProcessor = imageProcessor;
 	}
 
 	public ImageProcessor getImageProcessor()
@@ -50,9 +81,19 @@ public class ImageSettings
 		return imageProcessor;
 	}
 
+	public void setFileFolder(String fileFolder)
+	{
+		this.fileFolder = fileFolder;
+	}
+
 	public String getFileFolder()
 	{
 		return fileFolder;
+	}
+
+	public void setShowSmallerIfAvailable(boolean showSmallerIfAvailable)
+	{
+		this.showSmallerIfAvailable = showSmallerIfAvailable;
 	}
 
 	public boolean isShowSmallerIfAvailable()
@@ -60,9 +101,19 @@ public class ImageSettings
 		return showSmallerIfAvailable;
 	}
 
+	public void setUseMemoryCache(boolean useMemoryCache)
+	{
+		this.useMemoryCache = useMemoryCache;
+	}
+
 	public boolean isUseMemoryCache()
 	{
 		return useMemoryCache;
+	}
+
+	public void setUseFileCache(boolean useFileCache)
+	{
+		this.useFileCache = useFileCache;
 	}
 
 	public boolean isUseFileCache()
