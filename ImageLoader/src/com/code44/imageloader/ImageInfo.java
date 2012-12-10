@@ -77,14 +77,13 @@ public class ImageInfo
 		return isLoggingOn;
 	}
 
-	/**
-	 * Wrapper method loads bitmap for this {@link ImageInfo}.
-	 * 
-	 * @return {@link Bitmap}.
-	 */
-	public Bitmap loadBitmap(Context context)
+	public BitmapData loadBitmapData(Context context)
 	{
-		final BitmapData bitmapData = bitmapInfo.getBitmapDataGetter(context).getBitmapData(this);
+		return bitmapInfo.getBitmapDataGetter(context).getBitmapData(this);
+	}
+
+	public Bitmap parseBitmapData(Context context, BitmapData bitmapData)
+	{
 		return bitmapInfo.getBitmapParser(context).parseBitmap(this, bitmapData);
 	}
 

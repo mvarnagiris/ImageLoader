@@ -48,7 +48,7 @@ public class URLBitmapDataGetter extends FileBitmapDataGetter
 		this.context = context.getApplicationContext();
 	}
 
-	// FileImageGetter
+	// FileBitmapDataGetter
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override

@@ -34,7 +34,7 @@ public class FileBitmapDataGetter implements BitmapDataGetter
 	{
 	}
 
-	// ImageGetter
+	// BitmapDataGetter
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override

@@ -11,7 +11,9 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import com.code44.imageloader.cache.ImageCache;
+import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.info.BitmapInfo;
+import com.code44.imageloader.processor.ImageProcessor;
 
 /**
  * Loads images in background and handles caching.
@@ -93,7 +95,7 @@ public class ImageLoader
 		final ImageInfo imageInfo = new ImageInfo(imageView, bitmapInfo, imageSettings, loaderSettings.isLoggingOn());
 
 		// Try to get bitmap from memory cache
-		Bitmap bitmap = imageCache.get(imageInfo);
+		Bitmap bitmap = imageCache.getFromMemory(imageInfo);
 		if (bitmap != null)
 		{
 			if (isLoggingOn)
@@ -103,7 +105,7 @@ public class ImageLoader
 		}
 
 		// Try to get smaller image if necessary
-		bitmap = imageSettings.showSmallerIfAvailable ? imageCache.getSmallerIfAvailable(imageInfo) : null;
+		bitmap = imageSettings.showSmallerIfAvailable ? imageCache.getFromMemorySmaller(imageInfo) : null;
 		if (bitmap != null)
 		{
 			if (isLoggingOn)
@@ -146,7 +148,7 @@ public class ImageLoader
 	// GetBitmapTask
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public class GetBitmapTask extends AsyncTask<Void, Void, Bitmap>
+	public class GetBitmapTask extends AsyncTask<Void, Bitmap, Bitmap>
 	{
 		protected final ImageInfo	imageInfo;
 
@@ -160,31 +162,76 @@ public class ImageLoader
 		{
 			final boolean isLoggingOn = imageInfo.isLoggingOn() && BuildConfig.DEBUG;
 
-			// Try to get original bitmap from file cache
+			// Try to get bitmap from file
 			if (isCancelled())
 				return null;
-			Bitmap bitmap = imageCache.get(imageInfo);
+			Bitmap bitmap = imageCache.getFromFile(imageInfo);
 			if (isLoggingOn && bitmap != null)
 				Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
 
-			// If bitmap was not found in file cache, try to fetch it
-			if (isCancelled())
-				return null;
-			if (bitmap == null)
+			// If bitmap was not found in file cache, try to get smaller bitmap and continue loading.
+			if (bitmap == null && !isCancelled())
 			{
-				bitmap = imageInfo.loadBitmap(context);
+				bitmap = imageCache.getFromFileSmaller(imageInfo);
 				if (bitmap != null)
 				{
 					if (isLoggingOn)
-						Log.i(TAG, "Bitmap fetched. [" + imageInfo.toString() + "]");
+						Log.i(TAG, "Bitmap smaller version found in file cache. [" + imageInfo.toString() + "]");
+					publishProgress(bitmap);
+				}
+				bitmap = null;
+			}
+
+			// If bitmap was not found in file cache, try to get original bitmap from file
+			if (bitmap == null && !isCancelled())
+			{
+				bitmap = imageCache.getFromFileOriginal(imageInfo);
+				if (isLoggingOn && bitmap != null)
+					Log.i(TAG, "Bitmap original found in file cache. [" + imageInfo.toString() + "]");
+			}
+
+			// If bitmap original was not found in file cache and original file, try to fetch it
+			if (bitmap == null && !isCancelled())
+			{
+				final BitmapData bitmapData = imageInfo.loadBitmapData(context);
+				if (bitmapData != null)
+				{
+					if (isLoggingOn)
+						Log.i(TAG, "Bitmap original fetched. [" + imageInfo.toString() + "]");
+
+					if (imageCache.putToFileOriginal(imageInfo, bitmapData) && isLoggingOn)
+						Log.i(TAG, "Bitmap original stored in file. [" + imageInfo.toString() + "]");
+					bitmap = imageInfo.parseBitmapData(context, bitmapData);
+					if (isLoggingOn && bitmap != null)
+						Log.i(TAG, "Bitmap parsed. [" + imageInfo.toString() + "]");
 				}
 			}
 
-			// Put to memory cache
-			if (bitmap != null && imageCache.put(imageInfo, bitmap) && isLoggingOn)
-				Log.i(TAG, "Bitmap added to memory cache. [" + imageInfo.toString() + "]");
+			// Process bitmap
+			final ImageProcessor processor = imageInfo.getImageSettings().getImageProcessor();
+			if (bitmap != null && processor != null)
+			{
+				bitmap = processor.processImage(bitmap);
+				if (isLoggingOn)
+					Log.i(TAG, "Bitmap processed. [" + imageInfo.toString() + "], Processor: " + processor.toString());
+			}
+
+			// Put to cache
+			if (bitmap != null)
+			{
+				if (imageCache.putToFile(imageInfo, bitmap) && isLoggingOn)
+					Log.i(TAG, "Bitmap added to file cache. [" + imageInfo.toString() + "]");
+				if (imageCache.putToMemory(imageInfo, bitmap) && isLoggingOn)
+					Log.i(TAG, "Bitmap added to memory cache. [" + imageInfo.toString() + "]");
+			}
 
 			return bitmap;
+		}
+
+		@Override
+		protected void onProgressUpdate(Bitmap... values)
+		{
+			super.onProgressUpdate(values);
 		}
 
 		@Override

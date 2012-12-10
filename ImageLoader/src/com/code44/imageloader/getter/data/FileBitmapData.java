@@ -20,13 +20,17 @@ public class FileBitmapData extends BitmapData
 		this.deleteFile = deleteFile;
 	}
 
-	// Public methods
+	// BitmapData
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
+	@Override
 	public File getFile()
 	{
 		return file;
 	}
+
+	// Public methods
+	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	public boolean isDeleteFile()
 	{

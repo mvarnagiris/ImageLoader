@@ -7,6 +7,7 @@ import android.util.Log;
 import com.code44.imageloader.BuildConfig;
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageLoader;
+import com.code44.imageloader.getter.data.BitmapData;
 
 public class ImageCache
 {
@@ -47,17 +48,42 @@ public class ImageCache
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public Bitmap get(ImageInfo imageInfo)
+	public Bitmap getFromMemory(ImageInfo imageInfo)
 	{
 		return null;
 	}
 
-	public Bitmap getSmallerIfAvailable(ImageInfo imageInfo)
+	public Bitmap getFromMemorySmaller(ImageInfo imageInfo)
 	{
 		return null;
 	}
 
-	public boolean put(ImageInfo imageInfo, Bitmap bitmap)
+	public Bitmap getFromFile(ImageInfo imageInfo)
+	{
+		return null;
+	}
+
+	public Bitmap getFromFileSmaller(ImageInfo imageInfo)
+	{
+		return null;
+	}
+
+	public Bitmap getFromFileOriginal(ImageInfo imageInfo)
+	{
+		return null;
+	}
+
+	public boolean putToMemory(ImageInfo imageInfo, Bitmap bitmap)
+	{
+		return false;
+	}
+
+	public boolean putToFile(ImageInfo imageInfo, Bitmap bitmap)
+	{
+		return false;
+	}
+
+	public boolean putToFileOriginal(ImageInfo imageInfo, BitmapData bitmapData)
 	{
 		return false;
 	}
