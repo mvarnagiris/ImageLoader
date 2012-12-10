@@ -5,6 +5,9 @@ import java.util.concurrent.RejectedExecutionException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -142,7 +145,10 @@ public class ImageLoader
 
 	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap, boolean isThumbnail)
 	{
-		imageView.setImageBitmap(bitmap);
+		// imageView.setImageBitmap(bitmap);
+		TransitionDrawable td = new TransitionDrawable(new Drawable[] { imageView.getDrawable(), new BitmapDrawable(context.getResources(), bitmap) });
+		imageView.setImageDrawable(td);
+		td.startTransition(300);
 	}
 
 	// GetBitmapTask
