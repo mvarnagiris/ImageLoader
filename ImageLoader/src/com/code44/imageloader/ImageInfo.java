@@ -119,6 +119,7 @@ public class ImageInfo
 
 	public String getImageName()
 	{
-		return null;
+		// TODO Make proper name
+		return bitmapInfo.getUniqueName();
 	}
 }

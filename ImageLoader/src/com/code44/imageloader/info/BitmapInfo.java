@@ -20,6 +20,8 @@ public abstract class BitmapInfo
 	// Abstract methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
+	public abstract String getUniqueName();
+
 	/**
 	 * Used by {@link ImageLoader} to check if data is correct before star loading.
 	 * 

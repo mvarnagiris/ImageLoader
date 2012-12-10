@@ -3,7 +3,8 @@ package com.code44.imageloader.info;
 import android.content.Context;
 import android.webkit.URLUtil;
 
-import com.code44.imageloader.getter.FileBitmapDataGetter;
+import com.code44.imageloader.getter.BitmapDataGetter;
+import com.code44.imageloader.getter.URLBitmapDataGetter;
 import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 
 public class URLBitmapInfo extends FileBitmapInfo
@@ -34,8 +35,8 @@ public class URLBitmapInfo extends FileBitmapInfo
 	}
 
 	@Override
-	public FileBitmapDataGetter getBitmapDataGetter(Context context)
+	public BitmapDataGetter getBitmapDataGetter(Context context)
 	{
-		return super.getBitmapDataGetter(context);
+		return URLBitmapDataGetter.getDefault(context);
 	}
 }

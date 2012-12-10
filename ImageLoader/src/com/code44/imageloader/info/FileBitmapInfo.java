@@ -3,10 +3,12 @@ package com.code44.imageloader.info;
 import android.content.Context;
 import android.text.TextUtils;
 
+import com.code44.imageloader.getter.BitmapDataGetter;
 import com.code44.imageloader.getter.FileBitmapDataGetter;
 import com.code44.imageloader.getter.parser.BitmapParser;
 import com.code44.imageloader.getter.parser.FileBitmapParser;
 import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
+import com.code44.imageloader.utils.StringUtils;
 
 /**
  * Information about bitmap in file system.
@@ -40,13 +42,20 @@ public class FileBitmapInfo extends BitmapInfo
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override
+	public String getUniqueName()
+	{
+		// TODO Do we need to include sizeType to uniqueName?
+		return StringUtils.md5(filePath);
+	}
+
+	@Override
 	public boolean checkInfo()
 	{
 		return !TextUtils.isEmpty(filePath);
 	}
 
 	@Override
-	public FileBitmapDataGetter getBitmapDataGetter(Context context)
+	public BitmapDataGetter getBitmapDataGetter(Context context)
 	{
 		return FileBitmapDataGetter.getDefault();
 	}

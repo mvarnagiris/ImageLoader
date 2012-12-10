@@ -2,7 +2,6 @@ package com.code44.imageloader.getter.parser;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
 import android.util.Log;
 
 import com.code44.imageloader.ImageInfo;
@@ -95,6 +94,8 @@ public abstract class ScaledBitmapParser implements BitmapParser
 		// Check bitmap dimensions
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds = true;
+		options.inPurgeable = true;
+		options.inInputShareable = true;
 		decodeBitmap(imageInfo, bitmapData, options);
 
 		// Calculate inSampleSize
@@ -108,19 +109,22 @@ public abstract class ScaledBitmapParser implements BitmapParser
 		switch (sizeType)
 		{
 			case FILL:
-				final Matrix m = new Matrix();
-
-				// Translate to center
-				m.setTranslate((reqWidth - options.outWidth) / 2, (reqHeight - options.outHeight) / 2);
-
-				// Scale to until all size is filled
+				// Create scaled bitmap
 				final float scale;
 				if (options.outWidth - reqWidth < options.outHeight - reqHeight)
 					scale = (float) reqWidth / (float) options.outWidth;
 				else
 					scale = (float) reqHeight / (float) options.outHeight;
-				m.postScale(scale, scale, reqWidth / 2, reqHeight / 2);
-				bitmap = Bitmap.createBitmap(tempBitmap, 0, 0, reqWidth, reqHeight, m, true);
+
+				final int scaledWidth = (int) (options.outWidth * scale);
+				final int scaledHeight = (int) (options.outHeight * scale);
+				bitmap = Bitmap.createScaledBitmap(tempBitmap, scaledWidth, scaledHeight, true);
+				tempBitmap.recycle();
+				tempBitmap = bitmap;
+
+				// Create cropped bitmap
+				bitmap = Bitmap.createBitmap(tempBitmap, Math.max((scaledWidth - reqWidth) / 2, 0), Math.max((scaledHeight - reqHeight) / 2, 0), reqWidth,
+						reqHeight);
 				tempBitmap.recycle();
 				tempBitmap = null;
 				break;
