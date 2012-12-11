@@ -145,10 +145,18 @@ public class ImageLoader
 
 	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap, boolean isThumbnail)
 	{
-		// imageView.setImageBitmap(bitmap);
-		TransitionDrawable td = new TransitionDrawable(new Drawable[] { imageView.getDrawable(), new BitmapDrawable(context.getResources(), bitmap) });
-		imageView.setImageDrawable(td);
-		td.startTransition(300);
+		final Drawable currentDrawable = imageView.getDrawable();
+		final Drawable newDrawable = new BitmapDrawable(context.getResources(), bitmap);
+		if (currentDrawable == null)
+		{
+			imageView.setImageDrawable(newDrawable);
+		}
+		else
+		{
+			TransitionDrawable td = new TransitionDrawable(new Drawable[] { currentDrawable, newDrawable });
+			imageView.setImageDrawable(td);
+			td.startTransition(300);
+		}
 	}
 
 	// GetBitmapTask

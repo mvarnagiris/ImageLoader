@@ -91,78 +91,95 @@ public abstract class ScaledBitmapParser implements BitmapParser
 		final int reqWidth = settings.getWidth();
 		final int reqHeight = settings.getHeight();
 
-		// Check bitmap dimensions
-		final BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		options.inPurgeable = true;
-		options.inInputShareable = true;
-		decodeBitmap(imageInfo, bitmapData, options);
-
-		// Calculate inSampleSize
-		options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.getDownSampleBy());
-
-		// Decode bitmap with inSampleSize set
-		options.inJustDecodeBounds = false;
-		Bitmap tempBitmap = decodeBitmap(imageInfo, bitmapData, options);
-
-		// Resize and crop bitmap if necessary
-		switch (sizeType)
+		try
 		{
-			case FILL:
-				// Create scaled bitmap
-				final float scale;
-				if (options.outWidth - reqWidth < options.outHeight - reqHeight)
-					scale = (float) reqWidth / (float) options.outWidth;
-				else
-					scale = (float) reqHeight / (float) options.outHeight;
 
-				final int scaledWidth = (int) (options.outWidth * scale);
-				final int scaledHeight = (int) (options.outHeight * scale);
-				bitmap = Bitmap.createScaledBitmap(tempBitmap, scaledWidth, scaledHeight, true);
-				tempBitmap.recycle();
-				tempBitmap = bitmap;
+			// Check bitmap dimensions
+			final BitmapFactory.Options options = new BitmapFactory.Options();
+			options.inJustDecodeBounds = true;
+			options.inPurgeable = true;
+			options.inInputShareable = true;
+			decodeBitmap(imageInfo, bitmapData, options);
 
-				// Create cropped bitmap
-				bitmap = Bitmap.createBitmap(tempBitmap, Math.max((scaledWidth - reqWidth) / 2, 0), Math.max((scaledHeight - reqHeight) / 2, 0), reqWidth,
-						reqHeight);
-				tempBitmap.recycle();
-				tempBitmap = null;
-				break;
+			// Calculate inSampleSize
+			options.inSampleSize = calculateInSampleSize(options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.getDownSampleBy());
 
-			case FIT:
-				// TODO Implement
-				break;
+			// Decode bitmap with inSampleSize set
+			options.inJustDecodeBounds = false;
+			Bitmap tempBitmap = decodeBitmap(imageInfo, bitmapData, options);
+			if (tempBitmap == null)
+				return null;
 
-			case MAX:
-				// TODO Implement
-				break;
-
-			default:
-				break;
-		}
-
-		if (imageInfo.isLoggingOn() && bitmap != null)
-		{
-			String sizeTypeText;
+			// Resize and crop bitmap if necessary
 			switch (sizeType)
 			{
-				case MAX:
-					sizeTypeText = "MAX";
+				case FILL:
+					// Create scaled bitmap
+					final float scale;
+					if (options.outWidth - reqWidth < options.outHeight - reqHeight)
+						scale = (float) reqWidth / (float) options.outWidth;
+					else
+						scale = (float) reqHeight / (float) options.outHeight;
+
+					final int scaledWidth = (int) (options.outWidth * scale);
+					final int scaledHeight = (int) (options.outHeight * scale);
+					bitmap = Bitmap.createScaledBitmap(tempBitmap, scaledWidth, scaledHeight, true);
+					tempBitmap.recycle();
+					tempBitmap = bitmap;
+
+					// Create cropped bitmap
+					bitmap = Bitmap.createBitmap(tempBitmap, Math.max((scaledWidth - reqWidth) / 2, 0), Math.max((scaledHeight - reqHeight) / 2, 0), reqWidth,
+							reqHeight);
+					tempBitmap.recycle();
+					tempBitmap = null;
 					break;
 
 				case FIT:
-					sizeTypeText = "FIT";
+					// TODO Implement
 					break;
 
-				case FILL:
-					sizeTypeText = "FILL";
+				case MAX:
+					// TODO Implement
 					break;
 
 				default:
-					sizeTypeText = "NONE";
 					break;
 			}
-			Log.i(TAG, "Bitmap decoded with inSampleSize=" + options.inSampleSize + " and scaled to " + sizeTypeText + ". [" + imageInfo.toString() + "]");
+
+			if (imageInfo.isLoggingOn() && bitmap != null)
+			{
+				String sizeTypeText;
+				switch (sizeType)
+				{
+					case MAX:
+						sizeTypeText = "MAX";
+						break;
+
+					case FIT:
+						sizeTypeText = "FIT";
+						break;
+
+					case FILL:
+						sizeTypeText = "FILL";
+						break;
+
+					default:
+						sizeTypeText = "NONE";
+						break;
+				}
+				Log.i(TAG, "Bitmap decoded with inSampleSize=" + options.inSampleSize + " and scaled to " + sizeTypeText + ". [" + imageInfo.toString() + "]");
+			}
+
+		}
+		catch (OutOfMemoryError e)
+		{
+			bitmap = null;
+			// TODO LOG
+		}
+		catch (Exception e)
+		{
+			bitmap = null;
+			// TODO LOG
 		}
 
 		return bitmap;
