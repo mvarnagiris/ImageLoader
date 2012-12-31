@@ -11,7 +11,7 @@ import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 import com.code44.imageloader.utils.StringUtils;
 
 /**
- * Information about bitmap in file system.
+ * Use this when you want to load bitmap from file system.
  * 
  * @author Mantas Varnagiris
  */
@@ -30,6 +30,35 @@ public class FileBitmapInfo extends BitmapInfo
 	{
 		this.filePath = filePath;
 		this.sizeType = sizeType;
+	}
+
+	// Object
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o == this)
+			return true;
+
+		if (o == null || o.getClass() != this.getClass())
+			return false;
+
+		final FileBitmapInfo fbi = (FileBitmapInfo) o;
+
+		return filePath != null && filePath.equals(fbi.filePath) && sizeType.equals(fbi.sizeType);
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+
+		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
+		result = prime * result + sizeType.ordinal();
+
+		return result;
 	}
 
 	@Override

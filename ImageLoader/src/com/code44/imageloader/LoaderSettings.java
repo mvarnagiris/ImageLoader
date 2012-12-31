@@ -1,5 +1,10 @@
 package com.code44.imageloader;
 
+/**
+ * Holds settings for {@link ImageLoader}.
+ * 
+ * @author Mantas Varnagiris
+ */
 public class LoaderSettings
 {
 	private boolean	isLoggingOn	= false;

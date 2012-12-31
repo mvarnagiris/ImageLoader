@@ -7,6 +7,11 @@ import com.code44.imageloader.getter.BitmapDataGetter;
 import com.code44.imageloader.getter.URLBitmapDataGetter;
 import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 
+/**
+ * Use this when you want to load bitmap from URL.
+ * 
+ * @author Mantas Varnagiris
+ */
 public class URLBitmapInfo extends FileBitmapInfo
 {
 	public URLBitmapInfo(String url)
@@ -18,6 +23,9 @@ public class URLBitmapInfo extends FileBitmapInfo
 	{
 		super(url, sizeType);
 	}
+
+	// Object
+	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override
 	public String toString()

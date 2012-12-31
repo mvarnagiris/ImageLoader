@@ -3,7 +3,7 @@ package com.code44.imageloader.processor;
 import android.graphics.Bitmap;
 
 /**
- * An interface specifying a way to process an image.
+ * An interface specifying a way to process an image. This is applied after bitmap is loaded but before it is put in file cache and memory cache.
  * 
  * @author Mantas Varnagiris
  */

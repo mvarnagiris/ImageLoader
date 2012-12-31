@@ -14,7 +14,7 @@ import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.getter.data.FileBitmapData;
 
 /**
- * Decodes scaled bitmap from file.
+ * Decodes scaled bitmap from file. Also deletes file if necessary.
  * 
  * @author Mantas Varnagiris
  */

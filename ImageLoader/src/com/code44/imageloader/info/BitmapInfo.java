@@ -1,6 +1,8 @@
 package com.code44.imageloader.info;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.widget.ImageView;
 
 import com.code44.imageloader.ImageLoader;
 import com.code44.imageloader.getter.BitmapDataGetter;
@@ -8,7 +10,12 @@ import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.getter.parser.BitmapParser;
 
 /**
- * Holds information about bitmap that will be fetched.
+ * Holds information about how to load {@link BitmapData} and how to parse it to {@link Bitmap} using {@link BitmapParser}. Extend this class if you want custom
+ * bitmap loading.
+ * <p>
+ * <b>Important: </b>Don't forget to override {@link #equals(Object)} and {@link #hashCode()} methods. This is needed, because {@link ImageLoader} needs to be
+ * able to check if if the same {@link BitmapInfo} is being loaded for {@link ImageView}.
+ * </p>
  * <p>
  * <b>Note: </b>Override {@link #toString()} method for better logging.
  * </p>

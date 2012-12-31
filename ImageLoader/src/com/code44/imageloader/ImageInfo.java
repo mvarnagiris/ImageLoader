@@ -10,6 +10,16 @@ import com.code44.imageloader.ImageLoader.GetBitmapTask;
 import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.info.BitmapInfo;
 
+/**
+ * This object is created when you call {@link ImageLoader#loadImage(ImageView, BitmapInfo)} or
+ * {@link ImageLoader#loadImage(ImageView, BitmapInfo, ImageSettings)}. It holds all necessary information for background task to load an image from anywhere
+ * you specify.
+ * <p>
+ * Usually you don't use this class directly.
+ * </p>
+ * 
+ * @author Mantas Varnagiris
+ */
 public class ImageInfo
 {
 	protected final WeakReference<ImageView>	imageViewReference;
@@ -17,6 +27,18 @@ public class ImageInfo
 	protected final ImageSettings				imageSettings;
 	protected final boolean						isLoggingOn;
 
+	/**
+	 * Constructor
+	 * 
+	 * @param imageView
+	 *            {@link ImageView} in which to load bitmap.
+	 * @param bitmapInfo
+	 *            Information about how to load a bitmap.
+	 * @param imageSettings
+	 *            Various settings that change behavior how bitmap is loaded.
+	 * @param isLoggingOn
+	 *            Flag to turn on/off logging.
+	 */
 	public ImageInfo(ImageView imageView, BitmapInfo bitmapInfo, ImageSettings imageSettings, boolean isLoggingOn)
 	{
 		this.imageViewReference = new WeakReference<ImageView>(imageView);
@@ -25,25 +47,41 @@ public class ImageInfo
 		this.isLoggingOn = isLoggingOn;
 	}
 
+	// Object
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
 	@Override
 	public boolean equals(Object o)
 	{
-		// TODO Implement
-		return super.equals(o);
+		if (o == this)
+			return true;
+
+		if (o == null || o.getClass() != this.getClass())
+			return false;
+
+		final ImageInfo imageInfo = (ImageInfo) o;
+
+		// ImageView is always not null and always the same when we reach this method from cancelPotentialWork(). No need to check here
+
+		return imageInfo.getImageSettings().equals(this.getImageSettings()) && imageInfo.getBitmapInfo().equals(this.getBitmapInfo());
 	}
 
 	@Override
 	public int hashCode()
 	{
-		// TODO Implement
-		return super.hashCode();
+		final int prime = 31;
+		int result = 1;
+
+		result = prime * result + imageSettings.hashCode();
+		result = prime * result + bitmapInfo.hashCode();
+
+		return result;
 	}
 
 	@Override
 	public String toString()
 	{
-		// TODO Implement
-		return super.toString();
+		return bitmapInfo.toString();
 	}
 
 	// Public methods
@@ -62,26 +100,51 @@ public class ImageInfo
 		return null;
 	}
 
+	/**
+	 * @return {@link BitmapInfo}.
+	 */
 	public BitmapInfo getBitmapInfo()
 	{
 		return bitmapInfo;
 	}
 
+	/**
+	 * @return {@link ImageSettings}.
+	 */
 	public ImageSettings getImageSettings()
 	{
 		return imageSettings;
 	}
 
+	/**
+	 * @return {@code true} if logging is on; {@code false} otherwise.
+	 */
 	public boolean isLoggingOn()
 	{
 		return isLoggingOn;
 	}
 
+	/**
+	 * Wrapper method. Loads {@link BitmapData} from {@link BitmapInfo}.
+	 * 
+	 * @param context
+	 *            Context.
+	 * @return {@link BitmapData} or {@code null} when loading failed.
+	 */
 	public BitmapData loadBitmapData(Context context)
 	{
 		return bitmapInfo.getBitmapDataGetter(context).getBitmapData(this);
 	}
 
+	/**
+	 * Wrapper method. Parses {@link BitmapData} into actual {@link Bitmap} using parser from {@link BitmapInfo}.
+	 * 
+	 * @param context
+	 *            Context.
+	 * @param bitmapData
+	 *            {@link BitmapData} to parse.
+	 * @return {@link Bitmap} or {@code null} when parsing fails.
+	 */
 	public Bitmap parseBitmapData(Context context, BitmapData bitmapData)
 	{
 		return bitmapInfo.getBitmapParser(context).parseBitmap(this, bitmapData);
@@ -108,6 +171,9 @@ public class ImageInfo
 		return true;
 	}
 
+	/**
+	 * @return {@link GetBitmapTask} or {@code null} if {@link ImageView} has been recycled.
+	 */
 	public GetBitmapTask getGetBitmapTask()
 	{
 		ImageView imageView = getImageView();

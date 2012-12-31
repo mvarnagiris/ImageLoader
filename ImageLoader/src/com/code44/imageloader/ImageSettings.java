@@ -4,6 +4,11 @@ import android.graphics.drawable.Drawable;
 
 import com.code44.imageloader.processor.ImageProcessor;
 
+/**
+ * Holds information (size, loading/error drawables, image processors, etc.) about bitmap.
+ * 
+ * @author Mantas Varnagiris
+ */
 public class ImageSettings
 {
 	protected int				width					= 0;
@@ -16,6 +21,51 @@ public class ImageSettings
 	protected boolean			showSmallerIfAvailable	= true;
 	protected boolean			useMemoryCache			= true;
 	protected boolean			useFileCache			= true;
+
+	// Object
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (o == this)
+			return true;
+
+		if (o == null || o.getClass() != this.getClass())
+			return false;
+
+		final ImageSettings imageSettings = (ImageSettings) o;
+
+		return width == imageSettings.width
+				&& height == imageSettings.height
+				&& downSampleBy == imageSettings.downSampleBy
+				&& (loadingDrawable != null && loadingDrawable.equals(imageSettings.loadingDrawable))
+				&& (errorDrawable != null && errorDrawable.equals(imageSettings.errorDrawable))
+				&& (imageProcessor != null && imageSettings.imageProcessor != null && imageProcessor.getUniqueId().equals(
+						imageSettings.imageProcessor.getUniqueId())) && (fileFolder != null && fileFolder.equals(imageSettings.fileFolder))
+				&& showSmallerIfAvailable == imageSettings.showSmallerIfAvailable && useMemoryCache == imageSettings.useMemoryCache
+				&& useFileCache == imageSettings.useFileCache;
+	}
+
+	@Override
+	public int hashCode()
+	{
+		final int prime = 31;
+		int result = 1;
+
+		result = prime * result + width;
+		result = prime * result + height;
+		result = prime * result + downSampleBy;
+		result = prime * result + ((loadingDrawable == null) ? 0 : loadingDrawable.hashCode());
+		result = prime * result + ((errorDrawable == null) ? 0 : errorDrawable.hashCode());
+		result = prime * result + ((imageProcessor == null) ? 0 : imageProcessor.hashCode());
+		result = prime * result + ((fileFolder == null) ? 0 : fileFolder.hashCode());
+		result = prime * result + (showSmallerIfAvailable ? 1 : 0);
+		result = prime * result + (useMemoryCache ? 1 : 0);
+		result = prime * result + (useFileCache ? 1 : 0);
+
+		return result;
+	}
 
 	// Getters/Setters
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -50,10 +100,16 @@ public class ImageSettings
 		return downSampleBy;
 	}
 
+	/**
+	 * If {@link #getErrorDrawable()} is {@code null} then {@code loadingDrawable} will be set to {@link #errorDrawable} as well.
+	 * 
+	 * @param loadingDrawable
+	 */
 	public void setLoadingDrawable(Drawable loadingDrawable)
 	{
 		this.loadingDrawable = loadingDrawable;
-		// TODO If error drawable is null, set error drawable as well
+		if (this.errorDrawable == null)
+			this.errorDrawable = loadingDrawable;
 	}
 
 	public Drawable getLoadingDrawable()

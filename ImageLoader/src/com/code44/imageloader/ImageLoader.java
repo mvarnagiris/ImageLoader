@@ -35,16 +35,34 @@ public class ImageLoader
 	// Constructors
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Uses default values for {@link LoaderSettings} and {@link ImageSettings}.
+	 * 
+	 * @param context
+	 *            Context.
+	 */
 	public ImageLoader(Context context)
 	{
 		this(context, null, null);
 	}
 
+	/**
+	 * Uses default values for {@link ImageSettings}.
+	 * 
+	 * @param context
+	 * @param loaderSettings
+	 */
 	public ImageLoader(Context context, LoaderSettings loaderSettings)
 	{
 		this(context, loaderSettings, null);
 	}
 
+	/**
+	 * Uses default values for {@link LoaderSettings}.
+	 * 
+	 * @param context
+	 * @param defaultImageSettings
+	 */
 	public ImageLoader(Context context, ImageSettings defaultImageSettings)
 	{
 		this(context, null, defaultImageSettings);
@@ -61,11 +79,25 @@ public class ImageLoader
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
+	/**
+	 * Use this to load image. Default or the ones that you've passed in a constructor {@link ImageSettings} will be used. If you want to use different
+	 * {@link ImageSettings}, use {@link #loadImage(ImageView, BitmapInfo, ImageSettings)}.
+	 * 
+	 * @param imageView
+	 * @param bitmapInfo
+	 */
 	public void loadImage(final ImageView imageView, final BitmapInfo bitmapInfo)
 	{
 		loadImage(imageView, bitmapInfo, null);
 	}
 
+	/**
+	 * Use this to load image.
+	 * 
+	 * @param imageView
+	 * @param bitmapInfo
+	 * @param imageSettings
+	 */
 	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void loadImage(final ImageView imageView, final BitmapInfo bitmapInfo, ImageSettings imageSettings)
 	{
