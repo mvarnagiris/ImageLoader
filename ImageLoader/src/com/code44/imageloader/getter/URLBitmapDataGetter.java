@@ -57,7 +57,7 @@ public class URLBitmapDataGetter extends FileBitmapDataGetter
 		final boolean isLoggingOn = BuildConfig.DEBUG && imageInfo.isLoggingOn();
 
 		// Create file to store bitmap
-		final File tempFile = new File(context.getCacheDir(), imageInfo.getImageName());
+		final File tempFile = new File(context.getCacheDir(), imageInfo.getCacheName());
 
 		// Setup connection
 		HttpURLConnection urlConnection = null;

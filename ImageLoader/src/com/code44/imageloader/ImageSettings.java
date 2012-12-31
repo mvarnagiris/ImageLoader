@@ -177,6 +177,19 @@ public class ImageSettings
 		return useFileCache;
 	}
 
+	// Public methods
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	/**
+	 * This will be a part of bitmap name in cache.
+	 * 
+	 * @return Settings string.
+	 */
+	public String getSettingsName()
+	{
+		return width + ";;" + height + ";;" + downSampleBy + ";;" + (imageProcessor == null ? "null" : imageProcessor.getUniqueId());
+	}
+
 	// Builder
 	// ------------------------------------------------------------------------------------------------------------------------------------
 

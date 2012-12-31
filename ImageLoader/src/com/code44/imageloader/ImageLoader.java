@@ -135,17 +135,8 @@ public class ImageLoader
 		{
 			if (isLoggingOn)
 				Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
-			setImage(imageView, imageInfo, bitmap, false);
+			setImage(imageView, imageInfo, bitmap);
 			return;
-		}
-
-		// Try to get smaller image if necessary
-		bitmap = imageSettings.showSmallerIfAvailable ? imageCache.getFromMemorySmaller(imageInfo) : null;
-		if (bitmap != null)
-		{
-			if (isLoggingOn)
-				Log.i(TAG, "Bitmap thumbnail found in memory cache. [" + imageInfo.toString() + "]");
-			setImage(imageView, imageInfo, bitmap, true);
 		}
 
 		// If bitmap was not found in cache and same work is not already running - load it
@@ -175,7 +166,7 @@ public class ImageLoader
 	// Protected methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap, boolean isThumbnail)
+	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap)
 	{
 		final Drawable currentDrawable = imageView.getDrawable();
 		final Drawable newDrawable = new BitmapDrawable(context.getResources(), bitmap);
@@ -214,19 +205,6 @@ public class ImageLoader
 			Bitmap bitmap = imageCache.getFromFile(imageInfo);
 			if (isLoggingOn && bitmap != null)
 				Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
-
-			// If bitmap was not found in file cache, try to get smaller bitmap and continue loading.
-			if (bitmap == null && !isCancelled())
-			{
-				bitmap = imageCache.getFromFileSmaller(imageInfo);
-				if (bitmap != null)
-				{
-					if (isLoggingOn)
-						Log.i(TAG, "Bitmap smaller version found in file cache. [" + imageInfo.toString() + "]");
-					publishProgress(bitmap);
-				}
-				bitmap = null;
-			}
 
 			// If bitmap was not found in file cache, try to get original bitmap from file
 			if (bitmap == null && !isCancelled())
@@ -293,7 +271,7 @@ public class ImageLoader
 
 			final ImageView imageView = imageInfo.getImageView();
 			if (imageView != null && bitmap != null && imageInfo.getGetBitmapTask() == this)
-				setImage(imageView, imageInfo, bitmap, false);
+				setImage(imageView, imageInfo, bitmap);
 		}
 
 		// Public methods

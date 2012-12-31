@@ -27,7 +27,13 @@ public abstract class BitmapInfo
 	// Abstract methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public abstract String getUniqueName();
+	/**
+	 * This should be unique name identifying image. This name will be used for file cache and memory cache, so the name should be formatted so that it would be
+	 * a correct file name in file cache. Eg. URLs should be MD5-ed.
+	 * 
+	 * @return Unique name identifying image.
+	 */
+	public abstract String getBitmapName();
 
 	/**
 	 * Used by {@link ImageLoader} to check if data is correct before star loading.

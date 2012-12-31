@@ -71,7 +71,7 @@ public class FileBitmapInfo extends BitmapInfo
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	@Override
-	public String getUniqueName()
+	public String getBitmapName()
 	{
 		// TODO Do we need to include sizeType to uniqueName?
 		return StringUtils.md5(filePath);

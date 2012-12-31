@@ -183,9 +183,31 @@ public class ImageInfo
 		return null;
 	}
 
-	public String getImageName()
+	/**
+	 * This is unique name that contains important info about bitmap. This name is used as a key to store/retrieve image in/from memory and file cache.
+	 * 
+	 * @return
+	 */
+	public String getCacheName()
 	{
-		// TODO Make proper name
-		return bitmapInfo.getUniqueName();
+		return getCacheName(imageSettings.getSettingsName(), bitmapInfo.getBitmapName());
+	}
+
+	public String getSettingsName()
+	{
+		return imageSettings.getSettingsName();
+	}
+
+	public String getBitmapName()
+	{
+		return bitmapInfo.getBitmapName();
+	}
+
+	// Static methods
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	public static String getCacheName(String settingsName, String bitmapName)
+	{
+		return settingsName + "::" + bitmapName;
 	}
 }
