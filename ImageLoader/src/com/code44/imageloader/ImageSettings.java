@@ -70,19 +70,15 @@ public class ImageSettings
 	// Getters/Setters
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public void setWidth(int width)
+	public void setSize(int width, int height)
 	{
 		this.width = width;
+		this.height = height;
 	}
 
 	public int getWidth()
 	{
 		return width;
-	}
-
-	public void setHeight(int height)
-	{
-		this.height = height;
 	}
 
 	public int getHeight()
@@ -207,14 +203,9 @@ public class ImageSettings
 			return imageSettings;
 		}
 
-		public Builder withWidth(int width)
+		public Builder withSize(int width, int height)
 		{
 			imageSettings.width = width;
-			return this;
-		}
-
-		public Builder withHeight(int height)
-		{
 			imageSettings.height = height;
 			return this;
 		}

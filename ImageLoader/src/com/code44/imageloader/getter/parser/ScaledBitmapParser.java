@@ -17,10 +17,17 @@ public abstract class ScaledBitmapParser implements BitmapParser
 {
 	public enum SizeType
 	{
-		NONE, // Image will not be scaled.
-		MAX, // If ImageInfo has at least one dimension set, image will be scaled down if necessary to fit within those dimensions.
-		FIT, // If ImageInfo has at least one dimension set, image will be scaled down or up to fit within those dimensions.
-		FILL // If ImageInfo has at least one dimension set, image will centered, scaled until most image fills all area and then cropped.
+		/** Image will not be scaled. */
+		NONE,
+
+		/** Image will be scaled down if necessary to fit within given dimensions. */
+		MAX,
+
+		/** Image will scaled down or up to fill given dimensions. */
+		FILL,
+
+		/** Image will scaled down or up to fill given dimensions and then it will be cropped. */
+		FILL_CROP
 	}
 
 	protected final SizeType	sizeType;
@@ -37,29 +44,28 @@ public abstract class ScaledBitmapParser implements BitmapParser
 	{
 		int inSampleSize = 1;
 
-		// If size type is NONE then no need to calculate sample size
-		if (sizeType == SizeType.NONE)
+		// Check if image should be scaled or if dimensions are set
+		if (sizeType == SizeType.NONE || (width <= 0 || height <= 0))
 			return inSampleSize + downSampleBy;
 
 		// Calculate sample size based on SizeType
 		switch (sizeType)
 		{
-			case FILL:
-				if (height > reqHeight && width > reqWidth)
+			case MAX:
+				if (height > reqHeight || width > reqWidth)
 				{
-					if (height - reqHeight < width - reqWidth)
+					if (height - reqHeight > width - reqWidth)
 						inSampleSize = Math.round((float) height / (float) reqHeight);
 					else
 						inSampleSize = Math.round((float) width / (float) reqWidth);
 				}
 				break;
 
-			case FIT:
-			case MAX:
-				// TODO If both dimensions are smaller, calculation for FIT should be different?
-				if (height > reqHeight || width > reqWidth)
+			case FILL:
+			case FILL_CROP:
+				if (height > reqHeight && width > reqWidth)
 				{
-					if (height - reqHeight > width - reqWidth)
+					if (width - reqWidth > height - reqHeight)
 						inSampleSize = Math.round((float) height / (float) reqHeight);
 					else
 						inSampleSize = Math.round((float) width / (float) reqWidth);
@@ -71,6 +77,59 @@ public abstract class ScaledBitmapParser implements BitmapParser
 		}
 
 		return inSampleSize + downSampleBy;
+	}
+
+	protected Bitmap createScaledBitmap(Bitmap bitmap, int width, int height, int reqWidth, int reqHeight, SizeType sizeType)
+	{
+		Bitmap newBitmap = null;
+
+		float scale = 1;
+		switch (sizeType)
+		{
+			case MAX:
+			{
+				if (width > reqWidth || height > reqHeight)
+				{
+					if (width - reqWidth > height - reqHeight)
+						scale = (float) reqWidth / (float) width;
+					else
+						scale = (float) reqHeight / (float) height;
+				}
+				break;
+			}
+
+			case FILL:
+			case FILL_CROP:
+			{
+				if (width > reqWidth && height > reqHeight)
+				{
+					if (height - reqHeight > width - reqWidth)
+						scale = (float) reqWidth / (float) width;
+					else
+						scale = (float) reqHeight / (float) height;
+				}
+				break;
+			}
+
+			default:
+				break;
+		}
+
+		// Create scaled bitmap
+		if (scale != 1)
+		{
+			final int scaledWidth = (int) (width * scale);
+			final int scaledHeight = (int) (height * scale);
+			newBitmap = Bitmap.createScaledBitmap(bitmap, scaledWidth, scaledHeight, true);
+			bitmap.recycle();
+			bitmap = null;
+		}
+		else
+		{
+			newBitmap = bitmap;
+		}
+
+		return newBitmap;
 	}
 
 	// Abstract methods
@@ -85,6 +144,7 @@ public abstract class ScaledBitmapParser implements BitmapParser
 	public Bitmap parseBitmap(ImageInfo imageInfo, BitmapData bitmapData)
 	{
 		Bitmap bitmap = null;
+		Bitmap tempBitmap = null;
 
 		// Read settings
 		final ImageSettings settings = imageInfo.getImageSettings();
@@ -93,7 +153,6 @@ public abstract class ScaledBitmapParser implements BitmapParser
 
 		try
 		{
-
 			// Check bitmap dimensions
 			final BitmapFactory.Options options = new BitmapFactory.Options();
 			options.inJustDecodeBounds = true;
@@ -106,41 +165,51 @@ public abstract class ScaledBitmapParser implements BitmapParser
 
 			// Decode bitmap with inSampleSize set
 			options.inJustDecodeBounds = false;
-			Bitmap tempBitmap = decodeBitmap(imageInfo, bitmapData, options);
+			tempBitmap = decodeBitmap(imageInfo, bitmapData, options);
 			if (tempBitmap == null)
+			{
+				if (imageInfo.isLoggingOn())
+					Log.w(TAG, "Failed to decode bitmap. [" + imageInfo.toString() + "]");
 				return null;
+			}
 
 			// Resize and crop bitmap if necessary
 			switch (sizeType)
 			{
+				case NONE:
+				{
+					// Do not scale
+					bitmap = tempBitmap;
+					break;
+				}
+
+				case MAX:
+				{
+					// Scale bitmap
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+					break;
+				}
+
 				case FILL:
-					// Create scaled bitmap
-					final float scale;
-					if (options.outWidth - reqWidth < options.outHeight - reqHeight)
-						scale = (float) reqWidth / (float) options.outWidth;
-					else
-						scale = (float) reqHeight / (float) options.outHeight;
+				{
+					// Scale bitmap
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+					break;
+				}
 
-					final int scaledWidth = (int) (options.outWidth * scale);
-					final int scaledHeight = (int) (options.outHeight * scale);
-					bitmap = Bitmap.createScaledBitmap(tempBitmap, scaledWidth, scaledHeight, true);
-					tempBitmap.recycle();
+				case FILL_CROP:
+				{
+					// Scale bitmap
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+
+					// Crop bitmap
 					tempBitmap = bitmap;
-
-					// Create cropped bitmap
-					bitmap = Bitmap.createBitmap(tempBitmap, Math.max((scaledWidth - reqWidth) / 2, 0), Math.max((scaledHeight - reqHeight) / 2, 0), reqWidth,
-							reqHeight);
+					bitmap = Bitmap.createBitmap(tempBitmap, Math.max((bitmap.getWidth() - reqWidth) / 2, 0),
+							Math.max((bitmap.getHeight() - reqHeight) / 2, 0), reqWidth, reqHeight);
 					tempBitmap.recycle();
 					tempBitmap = null;
 					break;
-
-				case FIT:
-					// TODO Implement
-					break;
-
-				case MAX:
-					// TODO Implement
-					break;
+				}
 
 				default:
 					break;
@@ -155,12 +224,12 @@ public abstract class ScaledBitmapParser implements BitmapParser
 						sizeTypeText = "MAX";
 						break;
 
-					case FIT:
-						sizeTypeText = "FIT";
-						break;
-
 					case FILL:
 						sizeTypeText = "FILL";
+						break;
+
+					case FILL_CROP:
+						sizeTypeText = "FILL_CROP";
 						break;
 
 					default:
@@ -173,13 +242,31 @@ public abstract class ScaledBitmapParser implements BitmapParser
 		}
 		catch (OutOfMemoryError e)
 		{
-			bitmap = null;
-			// TODO LOG
+			Log.e(TAG, "Failed to parse bitmap. ScaledBitmapParser. [" + imageInfo.toString() + "]", e);
+			if (tempBitmap != null)
+			{
+				tempBitmap.recycle();
+				tempBitmap = null;
+			}
+			if (bitmap != null)
+			{
+				bitmap.recycle();
+				bitmap = null;
+			}
 		}
 		catch (Exception e)
 		{
-			bitmap = null;
-			// TODO LOG
+			Log.e(TAG, "Failed to parse bitmap. ScaledBitmapParser. [" + imageInfo.toString() + "]", e);
+			if (tempBitmap != null)
+			{
+				tempBitmap.recycle();
+				tempBitmap = null;
+			}
+			if (bitmap != null)
+			{
+				bitmap.recycle();
+				bitmap = null;
+			}
 		}
 
 		return bitmap;

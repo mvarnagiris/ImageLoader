@@ -45,8 +45,7 @@ public class LoaderImageView extends ImageView
 				imageSettings = new ImageSettings();
 
 			boolean needLoadImages = imageSettings.getWidth() == 0 && bitmapInfo != null;
-			imageSettings.setWidth(w);
-			imageSettings.setHeight(h);
+			imageSettings.setSize(w, h);
 			if (needLoadImages)
 				imageLoader.loadImage(this, bitmapInfo, imageSettings);
 		}
@@ -54,8 +53,7 @@ public class LoaderImageView extends ImageView
 		{
 			if (imageSettings == null)
 				imageSettings = new ImageSettings();
-			imageSettings.setWidth(0);
-			imageSettings.setHeight(0);
+			imageSettings.setSize(0, 0);
 		}
 	}
 
@@ -92,8 +90,7 @@ public class LoaderImageView extends ImageView
 		this.imageSettings = imageSettings;
 		if (this.imageSettings != null)
 		{
-			this.imageSettings.setWidth(width);
-			this.imageSettings.setHeight(height);
+			this.imageSettings.setSize(width, height);
 		}
 	}
 }

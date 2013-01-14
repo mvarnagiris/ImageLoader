@@ -23,7 +23,7 @@ public class FileBitmapInfo extends BitmapInfo
 	public FileBitmapInfo(String filePath)
 	{
 		this.filePath = filePath;
-		this.sizeType = SizeType.FILL;
+		this.sizeType = SizeType.FILL_CROP;
 	}
 
 	public FileBitmapInfo(String filePath, SizeType sizeType)
