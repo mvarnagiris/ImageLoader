@@ -47,7 +47,10 @@ public class FileBitmapParser extends ScaledBitmapParser
 	@Override
 	protected Bitmap decodeBitmap(ImageInfo imageInfo, BitmapData bitmapData, Options options)
 	{
-		return BitmapFactory.decodeFile(((FileBitmapData) bitmapData).getFile().getAbsolutePath(), options);
+		final File bitmapFile = ((FileBitmapData) bitmapData).getFile();
+		if (bitmapFile.exists())
+			return BitmapFactory.decodeFile(bitmapFile.getAbsolutePath(), options);
+		return null;
 	}
 
 	@Override

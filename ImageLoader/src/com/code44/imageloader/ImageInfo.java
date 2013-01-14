@@ -193,11 +193,21 @@ public class ImageInfo
 		return getCacheName(imageSettings.getSettingsName(), bitmapInfo.getBitmapName());
 	}
 
+	/**
+	 * This name contains all information about how image is processed.
+	 * 
+	 * @return
+	 */
 	public String getSettingsName()
 	{
 		return imageSettings.getSettingsName();
 	}
 
+	/**
+	 * This is just a simple bitmap name that comes from {@link BitmapInfo}. This is used for original file cache.
+	 * 
+	 * @return
+	 */
 	public String getBitmapName()
 	{
 		return bitmapInfo.getBitmapName();

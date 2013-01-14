@@ -17,7 +17,6 @@ public class ImageSettings
 	protected Drawable			loadingDrawable	= null;
 	protected Drawable			errorDrawable	= null;
 	protected ImageProcessor	imageProcessor	= null;
-	protected String			fileFolder		= null;
 	protected boolean			useMemoryCache	= true;
 	protected boolean			useFileCache	= true;
 
@@ -41,8 +40,8 @@ public class ImageSettings
 				&& (loadingDrawable != null && loadingDrawable.equals(imageSettings.loadingDrawable))
 				&& (errorDrawable != null && errorDrawable.equals(imageSettings.errorDrawable))
 				&& (imageProcessor != null && imageSettings.imageProcessor != null && imageProcessor.getUniqueId().equals(
-						imageSettings.imageProcessor.getUniqueId())) && (fileFolder != null && fileFolder.equals(imageSettings.fileFolder))
-				&& useMemoryCache == imageSettings.useMemoryCache && useFileCache == imageSettings.useFileCache;
+						imageSettings.imageProcessor.getUniqueId())) && useMemoryCache == imageSettings.useMemoryCache
+				&& useFileCache == imageSettings.useFileCache;
 	}
 
 	@Override
@@ -57,7 +56,6 @@ public class ImageSettings
 		result = prime * result + ((loadingDrawable == null) ? 0 : loadingDrawable.hashCode());
 		result = prime * result + ((errorDrawable == null) ? 0 : errorDrawable.hashCode());
 		result = prime * result + ((imageProcessor == null) ? 0 : imageProcessor.hashCode());
-		result = prime * result + ((fileFolder == null) ? 0 : fileFolder.hashCode());
 		result = prime * result + (useMemoryCache ? 1 : 0);
 		result = prime * result + (useFileCache ? 1 : 0);
 
@@ -128,16 +126,6 @@ public class ImageSettings
 	public ImageProcessor getImageProcessor()
 	{
 		return imageProcessor;
-	}
-
-	public void setFileFolder(String fileFolder)
-	{
-		this.fileFolder = fileFolder;
-	}
-
-	public String getFileFolder()
-	{
-		return fileFolder;
 	}
 
 	public void setUseMemoryCache(boolean useMemoryCache)
@@ -221,12 +209,6 @@ public class ImageSettings
 			return this;
 		}
 
-		public Builder withFileFolder(String fileFolder)
-		{
-			imageSettings.fileFolder = fileFolder;
-			return this;
-		}
-
 		public Builder withUseMemoryCache(boolean useMemoryCache)
 		{
 			imageSettings.useMemoryCache = useMemoryCache;
@@ -238,6 +220,5 @@ public class ImageSettings
 			imageSettings.useFileCache = useFileCache;
 			return this;
 		}
-
 	}
 }

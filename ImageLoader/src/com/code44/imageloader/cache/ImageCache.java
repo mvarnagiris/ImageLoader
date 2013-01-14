@@ -1,22 +1,41 @@
 package com.code44.imageloader.cache;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.CompressFormat;
+import android.os.Environment;
 import android.support.v4.util.LruCache;
 import android.util.Log;
 
 import com.code44.imageloader.BuildConfig;
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageLoader;
-import com.code44.imageloader.getter.data.BitmapData;
+import com.code44.imageloader.getter.data.FileBitmapData;
+import com.code44.imageloader.getter.parser.FileBitmapParser;
+import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 
 public class ImageCache
 {
-	protected static final String				TAG	= ImageLoader.TAG + " - Cache";
+	protected static final String				TAG							= ImageLoader.TAG + " - Cache";
 
+	protected static final CompressFormat		DEFAULT_COMPRESS_FORMAT		= CompressFormat.PNG;
+	protected static final int					DEFAULT_COMPRESS_QUALITY	= 90;
+	protected static final String				NOMEDIA_FILE_NAME			= ".nomedia";
+	protected static final String				ORIGINAL_CACHE_DIR			= "original";
+	protected static final String				PROCESSED_CACHE_DIR			= "processed";
+
+	protected final Context						context;
 	protected final CacheSettings				cacheSettings;
 	protected final LruCache<String, Bitmap>	memoryCache;
+	protected File								rootCacheDir;
+	protected File								originalCacheDir;
+	protected File								processedCacheDir;
 
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -42,6 +61,8 @@ public class ImageCache
 
 	private ImageCache(Context context, CacheSettings settings)
 	{
+		this.context = context.getApplicationContext();
+
 		if (settings == null)
 			cacheSettings = new CacheSettings(context);
 		else
@@ -61,10 +82,55 @@ public class ImageCache
 				return bitmap.getRowBytes() * bitmap.getHeight();
 			}
 		};
+
+		rootCacheDir = null;
+		originalCacheDir = null;
+		processedCacheDir = null;
 	}
 
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	public File getRootCacheDir()
+	{
+		if (rootCacheDir == null)
+		{
+			final String state = Environment.getExternalStorageState();
+			if (Environment.MEDIA_MOUNTED.equals(state) && !Environment.MEDIA_MOUNTED_READ_ONLY.equals(state) && checkWriteExternalPermission())
+				rootCacheDir = context.getExternalCacheDir();
+			else
+				rootCacheDir = context.getCacheDir();
+
+			if (!rootCacheDir.isDirectory())
+				rootCacheDir.mkdirs();
+		}
+
+		return rootCacheDir;
+	}
+
+	public File getOriginalCacheDir()
+	{
+		if (originalCacheDir == null)
+		{
+			originalCacheDir = new File(getRootCacheDir(), ORIGINAL_CACHE_DIR);
+			if (!originalCacheDir.isDirectory())
+				originalCacheDir.mkdirs();
+		}
+
+		return originalCacheDir;
+	}
+
+	public File getProcessedCacheDir()
+	{
+		if (processedCacheDir == null)
+		{
+			processedCacheDir = new File(getRootCacheDir(), PROCESSED_CACHE_DIR);
+			if (!processedCacheDir.isDirectory())
+				processedCacheDir.mkdirs();
+		}
+
+		return processedCacheDir;
+	}
 
 	// Public bitmap methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -92,13 +158,51 @@ public class ImageCache
 		return null;
 	}
 
+	/**
+	 * Tries to retrieve image from processed images file cache.
+	 * 
+	 * @param imageInfo
+	 *            Info for image to retrieve from processed images file cache.
+	 * @return {@link Bitmap} or {@code null} if bitmap was not found.
+	 */
 	public Bitmap getFromFile(ImageInfo imageInfo)
 	{
+		final File bitmapFile = new File(getProcessedCacheDir(), imageInfo.getCacheName());
+		final Bitmap bitmap = new FileBitmapParser(SizeType.NONE).parseBitmap(imageInfo, new FileBitmapData(bitmapFile, false));
+		if (bitmap != null)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+				Log.i(TAG, "Processed file cache hit [" + imageInfo.toString() + "]");
+			return bitmap;
+		}
+
+		if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+			Log.i(TAG, "Not found in processed file cache [" + imageInfo.toString() + "]");
+
 		return null;
 	}
 
+	/**
+	 * Tries to retrieve image from original images file cache.
+	 * 
+	 * @param imageInfo
+	 *            Info for image to retrieve from original images file cache.
+	 * @return {@link Bitmap} or {@code null} if bitmap was not found.
+	 */
 	public Bitmap getFromFileOriginal(ImageInfo imageInfo)
 	{
+		final File bitmapFile = new File(getOriginalCacheDir(), imageInfo.getBitmapName());
+		final Bitmap bitmap = new FileBitmapParser(SizeType.NONE).parseBitmap(imageInfo, new FileBitmapData(bitmapFile, false));
+		if (bitmap != null)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+				Log.i(TAG, "Original file cache hit [" + imageInfo.toString() + "]");
+			return bitmap;
+		}
+
+		if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+			Log.i(TAG, "Not found in original file cache [" + imageInfo.toString() + "]");
+
 		return null;
 	}
 
@@ -124,7 +228,7 @@ public class ImageCache
 
 		if (BuildConfig.DEBUG && cacheSettings.isLoggingOn() && bitmap == null)
 		{
-			Log.i(TAG, "Cannot put null to memory cache [" + imageInfo.toString() + "]");
+			Log.w(TAG, "Cannot put null to memory cache [" + imageInfo.toString() + "]");
 			return false;
 		}
 
@@ -134,13 +238,129 @@ public class ImageCache
 		return false;
 	}
 
+	/**
+	 * Puts bitmap to processed images file cache.
+	 * 
+	 * @param imageInfo
+	 *            Info about image.
+	 * @param bitmap
+	 *            Bitmap to put to processed images file cache.
+	 * @return {@code true} if bitmap was added to processed images file cache; {@code false} if bitmap is {@code null} or it is already in cache.
+	 */
 	public boolean putToFile(ImageInfo imageInfo, Bitmap bitmap)
 	{
+		// Check if bitmap is not null
+		if (bitmap == null)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+			{
+				Log.w(TAG, "Cannot put null to processed file cache [" + imageInfo.toString() + "]");
+				return false;
+			}
+		}
+
+		// Try save bitmap to file
+		try
+		{
+			if (saveBitmapToFile(bitmap, new File(getProcessedCacheDir(), imageInfo.getCacheName())))
+			{
+				if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+					Log.i(TAG, "Added to file processed cache. [" + imageInfo.toString() + "]");
+				return true;
+			}
+			else
+			{
+				if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+					Log.i(TAG, "Already in processed file cache. [" + imageInfo.toString() + "]");
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+				Log.w(TAG, "Failed saving to file cache. [" + imageInfo.toString() + "]");
+			e.printStackTrace();
+		}
+
 		return false;
 	}
 
-	public boolean putToFileOriginal(ImageInfo imageInfo, BitmapData bitmapData)
+	/**
+	 * Puts bitmap to original images file cache.
+	 * 
+	 * @param imageInfo
+	 *            Info about image.
+	 * @param bitmap
+	 *            Bitmap to put to original images file cache.
+	 * @return {@code true} if bitmap was added to original images file cache; {@code false} if bitmap is {@code null} or it is already in cache.
+	 */
+	public boolean putToFileOriginal(ImageInfo imageInfo, Bitmap bitmap)
 	{
+		// Check if bitmap is not null
+		if (bitmap == null)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+			{
+				Log.w(TAG, "Cannot put null to original file cache [" + imageInfo.toString() + "]");
+				return false;
+			}
+		}
+
+		// Try save bitmap to file
+		try
+		{
+			if (saveBitmapToFile(bitmap, new File(getOriginalCacheDir(), imageInfo.getBitmapName())))
+			{
+				if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+					Log.i(TAG, "Added to original file cache. [" + imageInfo.toString() + "]");
+				return true;
+			}
+			else
+			{
+				if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+					Log.i(TAG, "Already in original file cache. [" + imageInfo.toString() + "]");
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
+				Log.w(TAG, "Failed saving to original file cache. [" + imageInfo.toString() + "]");
+			e.printStackTrace();
+		}
+
 		return false;
+	}
+
+	// Protected methods
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	protected boolean saveBitmapToFile(final Bitmap bitmap, final File bitmapFile) throws FileNotFoundException
+	{
+		if (!bitmapFile.exists())
+		{
+			FileOutputStream fos = new FileOutputStream(bitmapFile, false);
+			bitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
+			return true;
+		}
+		return false;
+	}
+
+	protected void addNomediaFile(File dir)
+	{
+		try
+		{
+			new File(dir, NOMEDIA_FILE_NAME).createNewFile();
+		}
+		catch (Exception e)
+		{
+			if (cacheSettings.isLoggingOn())
+				Log.w(TAG, "Problem creating nomedia file.", e);
+		}
+	}
+
+	private boolean checkWriteExternalPermission()
+	{
+		String permission = "android.permission.WRITE_EXTERNAL_STORAGE";
+		int res = context.checkCallingOrSelfPermission(permission);
+		return res == PackageManager.PERMISSION_GRANTED;
 	}
 }

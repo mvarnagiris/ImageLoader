@@ -199,12 +199,18 @@ public class ImageLoader
 		{
 			final boolean isLoggingOn = imageInfo.isLoggingOn() && BuildConfig.DEBUG;
 
-			// Try to get bitmap from file
-			if (isCancelled())
-				return null;
-			Bitmap bitmap = imageCache.getFromFile(imageInfo);
+			// Try to get bitmap from memory
+			Bitmap bitmap = imageCache.getFromMemory(imageInfo);
 			if (isLoggingOn && bitmap != null)
-				Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
+				Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
+
+			// Try to get bitmap from file
+			if (bitmap == null && !isCancelled())
+			{
+				bitmap = imageCache.getFromFile(imageInfo);
+				if (isLoggingOn && bitmap != null)
+					Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
+			}
 
 			// If bitmap was not found in file cache, try to get original bitmap from file
 			if (bitmap == null && !isCancelled())
@@ -223,11 +229,11 @@ public class ImageLoader
 					if (isLoggingOn)
 						Log.i(TAG, "Bitmap original fetched. [" + imageInfo.toString() + "]");
 
-					if (imageCache.putToFileOriginal(imageInfo, bitmapData) && isLoggingOn)
-						Log.i(TAG, "Bitmap original stored in file. [" + imageInfo.toString() + "]");
 					bitmap = imageInfo.parseBitmapData(context, bitmapData);
 					if (isLoggingOn && bitmap != null)
 						Log.i(TAG, "Bitmap parsed. [" + imageInfo.toString() + "]");
+					if (imageCache.putToFileOriginal(imageInfo, bitmap) && isLoggingOn)
+						Log.i(TAG, "Bitmap original stored in file. [" + imageInfo.toString() + "]");
 				}
 			}
 
