@@ -11,16 +11,15 @@ import com.code44.imageloader.processor.ImageProcessor;
  */
 public class ImageSettings
 {
-	protected int				width					= 0;
-	protected int				height					= 0;
-	protected int				downSampleBy			= 0;
-	protected Drawable			loadingDrawable			= null;
-	protected Drawable			errorDrawable			= null;
-	protected ImageProcessor	imageProcessor			= null;
-	protected String			fileFolder				= null;
-	protected boolean			showSmallerIfAvailable	= true;
-	protected boolean			useMemoryCache			= true;
-	protected boolean			useFileCache			= true;
+	protected int				width			= 0;
+	protected int				height			= 0;
+	protected int				downSampleBy	= 0;
+	protected Drawable			loadingDrawable	= null;
+	protected Drawable			errorDrawable	= null;
+	protected ImageProcessor	imageProcessor	= null;
+	protected String			fileFolder		= null;
+	protected boolean			useMemoryCache	= true;
+	protected boolean			useFileCache	= true;
 
 	// Object
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -43,8 +42,7 @@ public class ImageSettings
 				&& (errorDrawable != null && errorDrawable.equals(imageSettings.errorDrawable))
 				&& (imageProcessor != null && imageSettings.imageProcessor != null && imageProcessor.getUniqueId().equals(
 						imageSettings.imageProcessor.getUniqueId())) && (fileFolder != null && fileFolder.equals(imageSettings.fileFolder))
-				&& showSmallerIfAvailable == imageSettings.showSmallerIfAvailable && useMemoryCache == imageSettings.useMemoryCache
-				&& useFileCache == imageSettings.useFileCache;
+				&& useMemoryCache == imageSettings.useMemoryCache && useFileCache == imageSettings.useFileCache;
 	}
 
 	@Override
@@ -60,7 +58,6 @@ public class ImageSettings
 		result = prime * result + ((errorDrawable == null) ? 0 : errorDrawable.hashCode());
 		result = prime * result + ((imageProcessor == null) ? 0 : imageProcessor.hashCode());
 		result = prime * result + ((fileFolder == null) ? 0 : fileFolder.hashCode());
-		result = prime * result + (showSmallerIfAvailable ? 1 : 0);
 		result = prime * result + (useMemoryCache ? 1 : 0);
 		result = prime * result + (useFileCache ? 1 : 0);
 
@@ -141,16 +138,6 @@ public class ImageSettings
 	public String getFileFolder()
 	{
 		return fileFolder;
-	}
-
-	public void setShowSmallerIfAvailable(boolean showSmallerIfAvailable)
-	{
-		this.showSmallerIfAvailable = showSmallerIfAvailable;
-	}
-
-	public boolean isShowSmallerIfAvailable()
-	{
-		return showSmallerIfAvailable;
 	}
 
 	public void setUseMemoryCache(boolean useMemoryCache)
@@ -237,12 +224,6 @@ public class ImageSettings
 		public Builder withFileFolder(String fileFolder)
 		{
 			imageSettings.fileFolder = fileFolder;
-			return this;
-		}
-
-		public Builder withShowSmallerIfAvailable(boolean showSmallerIfAvailable)
-		{
-			imageSettings.showSmallerIfAvailable = showSmallerIfAvailable;
 			return this;
 		}
 
