@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageSettings;
+import com.code44.imageloader.ImageSettings.SizeType;
 import com.code44.imageloader.getter.data.BitmapData;
 
 /**
@@ -13,30 +14,8 @@ import com.code44.imageloader.getter.data.BitmapData;
  * 
  * @author Mantas Varnagiris
  */
-public abstract class ScaledBitmapParser implements BitmapParser
+public abstract class ScaledBitmapParser extends BitmapParser
 {
-	public enum SizeType
-	{
-		/** Image will not be scaled. */
-		NONE,
-
-		/** Image will be scaled down if necessary to fit within given dimensions. */
-		MAX,
-
-		/** Image will scaled down or up to fill given dimensions. */
-		FILL,
-
-		/** Image will scaled down or up to fill given dimensions and then it will be cropped. */
-		FILL_CROP
-	}
-
-	protected final SizeType	sizeType;
-
-	public ScaledBitmapParser(SizeType sizeType)
-	{
-		this.sizeType = sizeType;
-	}
-
 	// Protected methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -148,6 +127,7 @@ public abstract class ScaledBitmapParser implements BitmapParser
 
 		// Read settings
 		final ImageSettings settings = imageInfo.getImageSettings();
+		final SizeType sizeType = settings.getSizeType();
 		final int reqWidth = settings.getWidth();
 		final int reqHeight = settings.getHeight();
 

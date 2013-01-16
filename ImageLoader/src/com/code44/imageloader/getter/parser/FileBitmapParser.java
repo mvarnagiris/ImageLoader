@@ -1,13 +1,10 @@
 package com.code44.imageloader.getter.parser;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
-import android.util.Log;
 
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.getter.data.BitmapData;
@@ -23,22 +20,17 @@ public class FileBitmapParser extends ScaledBitmapParser
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	private static final Map<SizeType, FileBitmapParser>	instances	= new HashMap<SizeType, FileBitmapParser>();
+	private static FileBitmapParser	instance;
 
-	public static FileBitmapParser getDefault(SizeType sizeType)
+	public static FileBitmapParser getDefault()
 	{
-		FileBitmapParser instance = instances.get(sizeType);
 		if (instance == null)
-		{
-			instance = new FileBitmapParser(sizeType);
-			instances.put(sizeType, instance);
-		}
+			instance = new FileBitmapParser();
 		return instance;
 	}
 
-	public FileBitmapParser(SizeType sizeType)
+	protected FileBitmapParser()
 	{
-		super(sizeType);
 	}
 
 	// ScaledBitmapParser
@@ -54,19 +46,8 @@ public class FileBitmapParser extends ScaledBitmapParser
 	}
 
 	@Override
-	public Bitmap parseBitmap(ImageInfo imageInfo, BitmapData bitmapData)
+	public Bitmap parseBitmapFromFile(ImageInfo imageInfo, FileBitmapData bitmapData)
 	{
-		final Bitmap bitmap = super.parseBitmap(imageInfo, bitmapData);
-
-		// Delete file if necessary
-		final FileBitmapData fileBitmapData = (FileBitmapData) bitmapData;
-		final File file = fileBitmapData.getFile();
-		if (fileBitmapData.isDeleteFile() && file != null)
-		{
-			if (file.delete() && imageInfo.isLoggingOn())
-				Log.i(TAG, "Temporary file deleted. [" + imageInfo.toString() + "]");
-		}
-
-		return bitmap;
+		return parseBitmap(imageInfo, bitmapData);
 	}
 }

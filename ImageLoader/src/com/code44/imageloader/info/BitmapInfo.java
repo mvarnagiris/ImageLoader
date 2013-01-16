@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.widget.ImageView;
 
 import com.code44.imageloader.ImageLoader;
-import com.code44.imageloader.getter.BitmapDataGetter;
+import com.code44.imageloader.getter.BitmapGetter;
 import com.code44.imageloader.getter.data.BitmapData;
 import com.code44.imageloader.getter.parser.BitmapParser;
 
@@ -43,12 +43,12 @@ public abstract class BitmapInfo
 	public abstract boolean checkInfo();
 
 	/**
-	 * @return Instance of {@link BitmapDataGetter} that can handle this {@link BitmapInfo} and fetch bitmap.
+	 * @return Instance of {@link BitmapGetter} that can handle this {@link BitmapInfo} and fetch bitmap.
 	 */
-	public abstract BitmapDataGetter getBitmapDataGetter(Context context);
+	public abstract BitmapGetter getBitmapDataGetter(Context context);
 
 	/**
-	 * @return Instance of {@link BitmapParser} that can handle {@link BitmapData} returned from {@link BitmapDataGetter}.
+	 * @return Instance of {@link BitmapParser} that can handle {@link BitmapData} returned from {@link BitmapGetter}.
 	 */
 	public abstract BitmapParser getBitmapParser(Context context);
 }

@@ -3,11 +3,10 @@ package com.code44.imageloader.info;
 import android.content.Context;
 import android.text.TextUtils;
 
-import com.code44.imageloader.getter.BitmapDataGetter;
+import com.code44.imageloader.getter.BitmapGetter;
 import com.code44.imageloader.getter.FileBitmapDataGetter;
 import com.code44.imageloader.getter.parser.BitmapParser;
 import com.code44.imageloader.getter.parser.FileBitmapParser;
-import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 import com.code44.imageloader.utils.StringUtils;
 
 /**
@@ -17,19 +16,11 @@ import com.code44.imageloader.utils.StringUtils;
  */
 public class FileBitmapInfo extends BitmapInfo
 {
-	protected final String		filePath;
-	protected final SizeType	sizeType;
+	protected final String	filePath;
 
 	public FileBitmapInfo(String filePath)
 	{
 		this.filePath = filePath;
-		this.sizeType = SizeType.FILL_CROP;
-	}
-
-	public FileBitmapInfo(String filePath, SizeType sizeType)
-	{
-		this.filePath = filePath;
-		this.sizeType = sizeType;
 	}
 
 	// Object
@@ -46,7 +37,7 @@ public class FileBitmapInfo extends BitmapInfo
 
 		final FileBitmapInfo fbi = (FileBitmapInfo) o;
 
-		return filePath != null && filePath.equals(fbi.filePath) && sizeType.equals(fbi.sizeType);
+		return filePath != null && filePath.equals(fbi.filePath);
 	}
 
 	@Override
@@ -56,7 +47,6 @@ public class FileBitmapInfo extends BitmapInfo
 		int result = 1;
 
 		result = prime * result + ((filePath == null) ? 0 : filePath.hashCode());
-		result = prime * result + sizeType.ordinal();
 
 		return result;
 	}
@@ -83,7 +73,7 @@ public class FileBitmapInfo extends BitmapInfo
 	}
 
 	@Override
-	public BitmapDataGetter getBitmapDataGetter(Context context)
+	public BitmapGetter getBitmapDataGetter(Context context)
 	{
 		return FileBitmapDataGetter.getDefault();
 	}
@@ -91,7 +81,7 @@ public class FileBitmapInfo extends BitmapInfo
 	@Override
 	public BitmapParser getBitmapParser(Context context)
 	{
-		return FileBitmapParser.getDefault(sizeType);
+		return FileBitmapParser.getDefault();
 	}
 
 	// Public methods

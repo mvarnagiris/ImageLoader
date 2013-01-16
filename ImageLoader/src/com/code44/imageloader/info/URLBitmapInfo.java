@@ -3,9 +3,8 @@ package com.code44.imageloader.info;
 import android.content.Context;
 import android.webkit.URLUtil;
 
-import com.code44.imageloader.getter.BitmapDataGetter;
+import com.code44.imageloader.getter.BitmapGetter;
 import com.code44.imageloader.getter.URLBitmapDataGetter;
-import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 
 /**
  * Use this when you want to load bitmap from URL.
@@ -17,11 +16,6 @@ public class URLBitmapInfo extends FileBitmapInfo
 	public URLBitmapInfo(String url)
 	{
 		super(url);
-	}
-
-	public URLBitmapInfo(String url, SizeType sizeType)
-	{
-		super(url, sizeType);
 	}
 
 	// Object
@@ -43,7 +37,7 @@ public class URLBitmapInfo extends FileBitmapInfo
 	}
 
 	@Override
-	public BitmapDataGetter getBitmapDataGetter(Context context)
+	public BitmapGetter getBitmapDataGetter(Context context)
 	{
 		return URLBitmapDataGetter.getDefault(context);
 	}

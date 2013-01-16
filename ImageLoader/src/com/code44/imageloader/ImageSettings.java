@@ -11,12 +11,28 @@ import com.code44.imageloader.processor.ImageProcessor;
  */
 public class ImageSettings
 {
+	public enum SizeType
+	{
+		/** Image will not be scaled. */
+		NONE,
+
+		/** Image will be scaled down if necessary to fit within given dimensions. */
+		MAX,
+
+		/** Image will scaled down or up to fill given dimensions. */
+		FILL,
+
+		/** Image will scaled down or up to fill given dimensions and then it will be cropped. */
+		FILL_CROP
+	}
+
 	protected int				width			= 0;
 	protected int				height			= 0;
 	protected int				downSampleBy	= 0;
 	protected Drawable			loadingDrawable	= null;
 	protected Drawable			errorDrawable	= null;
 	protected ImageProcessor	imageProcessor	= null;
+	protected SizeType			sizeType		= SizeType.FILL_CROP;
 	protected boolean			useMemoryCache	= true;
 	protected boolean			useFileCache	= true;
 
@@ -40,8 +56,8 @@ public class ImageSettings
 				&& (loadingDrawable != null && loadingDrawable.equals(imageSettings.loadingDrawable))
 				&& (errorDrawable != null && errorDrawable.equals(imageSettings.errorDrawable))
 				&& (imageProcessor != null && imageSettings.imageProcessor != null && imageProcessor.getUniqueId().equals(
-						imageSettings.imageProcessor.getUniqueId())) && useMemoryCache == imageSettings.useMemoryCache
-				&& useFileCache == imageSettings.useFileCache;
+						imageSettings.imageProcessor.getUniqueId())) && sizeType.ordinal() == imageSettings.sizeType.ordinal()
+				&& useMemoryCache == imageSettings.useMemoryCache && useFileCache == imageSettings.useFileCache;
 	}
 
 	@Override
@@ -56,6 +72,7 @@ public class ImageSettings
 		result = prime * result + ((loadingDrawable == null) ? 0 : loadingDrawable.hashCode());
 		result = prime * result + ((errorDrawable == null) ? 0 : errorDrawable.hashCode());
 		result = prime * result + ((imageProcessor == null) ? 0 : imageProcessor.hashCode());
+		result = prime * result + sizeType.ordinal();
 		result = prime * result + (useMemoryCache ? 1 : 0);
 		result = prime * result + (useFileCache ? 1 : 0);
 
@@ -126,6 +143,16 @@ public class ImageSettings
 	public ImageProcessor getImageProcessor()
 	{
 		return imageProcessor;
+	}
+
+	public void setSizeType(SizeType sizeType)
+	{
+		this.sizeType = sizeType;
+	}
+
+	public SizeType getSizeType()
+	{
+		return sizeType;
 	}
 
 	public void setUseMemoryCache(boolean useMemoryCache)
@@ -206,6 +233,12 @@ public class ImageSettings
 		public Builder withImageProcessor(ImageProcessor imageProcessor)
 		{
 			imageSettings.imageProcessor = imageProcessor;
+			return this;
+		}
+
+		public Builder withSizeType(SizeType sizeType)
+		{
+			imageSettings.sizeType = sizeType;
 			return this;
 		}
 

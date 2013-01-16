@@ -1,5 +1,6 @@
 package com.code44.imageloader;
 
+import java.io.File;
 import java.util.concurrent.RejectedExecutionException;
 
 import android.annotation.TargetApi;
@@ -15,6 +16,7 @@ import android.widget.ImageView;
 
 import com.code44.imageloader.cache.ImageCache;
 import com.code44.imageloader.getter.data.BitmapData;
+import com.code44.imageloader.getter.data.FileBitmapData;
 import com.code44.imageloader.info.BitmapInfo;
 import com.code44.imageloader.processor.ImageProcessor;
 
@@ -212,15 +214,21 @@ public class ImageLoader
 					Log.i(TAG, "Bitmap found in file cache. [" + imageInfo.toString() + "]");
 			}
 
-			// If bitmap was not found in file cache, try to get original bitmap from file
+			// If bitmap was not found in file cache, try to get bitmap from original bitmap file
 			if (bitmap == null && !isCancelled())
 			{
-				bitmap = imageCache.getFromFileOriginal(imageInfo);
-				if (isLoggingOn && bitmap != null)
-					Log.i(TAG, "Bitmap original found in file cache. [" + imageInfo.toString() + "]");
+				final File bitmapFile = imageCache.getOriginalFile(imageInfo);
+				if (bitmapFile != null)
+				{
+					if (isLoggingOn)
+						Log.i(TAG, "Bitmap original found in file cache. [" + imageInfo.toString() + "]");
+					bitmap = imageInfo.parseFileBitmapData(context, new FileBitmapData(bitmapFile, false));
+					if (isLoggingOn && bitmap != null)
+						Log.i(TAG, "Bitmap parsed. [" + imageInfo.toString() + "]");
+				}
 			}
 
-			// If bitmap original was not found in file cache and original file, try to fetch it
+			// If bitmap original was not found in original file, try to fetch it
 			if (bitmap == null && !isCancelled())
 			{
 				final BitmapData bitmapData = imageInfo.loadBitmapData(context);
@@ -232,8 +240,16 @@ public class ImageLoader
 					bitmap = imageInfo.parseBitmapData(context, bitmapData);
 					if (isLoggingOn && bitmap != null)
 						Log.i(TAG, "Bitmap parsed. [" + imageInfo.toString() + "]");
-					if (imageCache.putToFileOriginal(imageInfo, bitmap) && isLoggingOn)
+					if (imageCache.putToFileOriginal(imageInfo, bitmapData.getFile()) && isLoggingOn)
 						Log.i(TAG, "Bitmap original stored in file. [" + imageInfo.toString() + "]");
+
+					// Delete file if necessary
+					final File file = bitmapData.getFile();
+					if (bitmapData.isDeleteFile() && file != null)
+					{
+						if (file.delete() && imageInfo.isLoggingOn())
+							Log.i(TAG, "Temporary file deleted. [" + imageInfo.toString() + "]");
+					}
 				}
 			}
 

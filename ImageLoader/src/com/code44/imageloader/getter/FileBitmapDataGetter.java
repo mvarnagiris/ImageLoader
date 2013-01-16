@@ -16,7 +16,7 @@ import com.code44.imageloader.info.FileBitmapInfo;
  * 
  * @author Mantas Varnagiris
  */
-public class FileBitmapDataGetter implements BitmapDataGetter
+public class FileBitmapDataGetter implements BitmapGetter
 {
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------

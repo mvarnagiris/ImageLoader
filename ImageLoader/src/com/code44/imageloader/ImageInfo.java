@@ -8,6 +8,7 @@ import android.widget.ImageView;
 
 import com.code44.imageloader.ImageLoader.GetBitmapTask;
 import com.code44.imageloader.getter.data.BitmapData;
+import com.code44.imageloader.getter.data.FileBitmapData;
 import com.code44.imageloader.info.BitmapInfo;
 
 /**
@@ -134,6 +135,20 @@ public class ImageInfo
 	public BitmapData loadBitmapData(Context context)
 	{
 		return bitmapInfo.getBitmapDataGetter(context).getBitmapData(this);
+	}
+
+	/**
+	 * Wrapper method. Parses {@link FileBitmapData} into actual {@link Bitmap} using parser from {@link BitmapInfo}.
+	 * 
+	 * @param context
+	 *            Context.
+	 * @param bitmapData
+	 *            {@link FileBitmapData} to parse.
+	 * @return {@link Bitmap} or {@code null} when parsing fails.
+	 */
+	public Bitmap parseFileBitmapData(Context context, FileBitmapData bitmapData)
+	{
+		return bitmapInfo.getBitmapParser(context).parseBitmapFromFile(this, bitmapData);
 	}
 
 	/**

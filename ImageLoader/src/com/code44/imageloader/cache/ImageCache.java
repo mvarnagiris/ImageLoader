@@ -1,8 +1,13 @@
 package com.code44.imageloader.cache;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import android.annotation.TargetApi;
 import android.content.Context;
@@ -18,7 +23,6 @@ import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageLoader;
 import com.code44.imageloader.getter.data.FileBitmapData;
 import com.code44.imageloader.getter.parser.FileBitmapParser;
-import com.code44.imageloader.getter.parser.ScaledBitmapParser.SizeType;
 
 public class ImageCache
 {
@@ -168,7 +172,7 @@ public class ImageCache
 	public Bitmap getFromFile(ImageInfo imageInfo)
 	{
 		final File bitmapFile = new File(getProcessedCacheDir(), imageInfo.getCacheName());
-		final Bitmap bitmap = new FileBitmapParser(SizeType.NONE).parseBitmap(imageInfo, new FileBitmapData(bitmapFile, false));
+		final Bitmap bitmap = FileBitmapParser.getDefault().parseBitmap(imageInfo, new FileBitmapData(bitmapFile, false));
 		if (bitmap != null)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
@@ -183,21 +187,20 @@ public class ImageCache
 	}
 
 	/**
-	 * Tries to retrieve image from original images file cache.
+	 * Tries to retrieve original image file.
 	 * 
 	 * @param imageInfo
 	 *            Info for image to retrieve from original images file cache.
-	 * @return {@link Bitmap} or {@code null} if bitmap was not found.
+	 * @return {@link File} or {@code null} if file was not found.
 	 */
-	public Bitmap getFromFileOriginal(ImageInfo imageInfo)
+	public File getOriginalFile(ImageInfo imageInfo)
 	{
 		final File bitmapFile = new File(getOriginalCacheDir(), imageInfo.getBitmapName());
-		final Bitmap bitmap = new FileBitmapParser(SizeType.NONE).parseBitmap(imageInfo, new FileBitmapData(bitmapFile, false));
-		if (bitmap != null)
+		if (bitmapFile.exists())
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
 				Log.i(TAG, "Original file cache hit [" + imageInfo.toString() + "]");
-			return bitmap;
+			return bitmapFile;
 		}
 
 		if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
@@ -293,10 +296,10 @@ public class ImageCache
 	 *            Bitmap to put to original images file cache.
 	 * @return {@code true} if bitmap was added to original images file cache; {@code false} if bitmap is {@code null} or it is already in cache.
 	 */
-	public boolean putToFileOriginal(ImageInfo imageInfo, Bitmap bitmap)
+	public boolean putToFileOriginal(ImageInfo imageInfo, File file)
 	{
 		// Check if bitmap is not null
-		if (bitmap == null)
+		if (file == null)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
 			{
@@ -305,11 +308,13 @@ public class ImageCache
 			}
 		}
 
-		// Try save bitmap to file
+		// Copy file
 		try
 		{
-			if (saveBitmapToFile(bitmap, new File(getOriginalCacheDir(), imageInfo.getBitmapName())))
+			final File bitmapFile = new File(getOriginalCacheDir(), imageInfo.getBitmapName());
+			if (!bitmapFile.exists())
 			{
+				copy(file, bitmapFile);
 				if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
 					Log.i(TAG, "Added to original file cache. [" + imageInfo.toString() + "]");
 				return true;
@@ -320,7 +325,7 @@ public class ImageCache
 					Log.i(TAG, "Already in original file cache. [" + imageInfo.toString() + "]");
 			}
 		}
-		catch (FileNotFoundException e)
+		catch (IOException e)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
 				Log.w(TAG, "Failed saving to original file cache. [" + imageInfo.toString() + "]");
@@ -362,5 +367,42 @@ public class ImageCache
 		String permission = "android.permission.WRITE_EXTERNAL_STORAGE";
 		int res = context.checkCallingOrSelfPermission(permission);
 		return res == PackageManager.PERMISSION_GRANTED;
+	}
+
+	public void copy(File src, File dst) throws IOException
+	{
+		InputStream in = null;
+		OutputStream out = null;
+		try
+		{
+			in = new FileInputStream(src);
+			out = new FileOutputStream(dst);
+			byte[] buf = new byte[1024];
+			int len;
+			while ((len = in.read(buf)) > 0)
+			{
+				out.write(buf, 0, len);
+			}
+		}
+		finally
+		{
+			closeSilently(out);
+			closeSilently(in);
+		}
+	}
+
+	public void closeSilently(Closeable c)
+	{
+		try
+		{
+			if (c != null)
+			{
+				c.close();
+			}
+		}
+		catch (Exception e)
+		{
+			Log.w(TAG, "Problem closing stream ", e);
+		}
 	}
 }
