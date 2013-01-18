@@ -233,6 +233,6 @@ public class ImageInfo
 
 	public static String getCacheName(String settingsName, String bitmapName)
 	{
-		return settingsName + "::" + bitmapName;
+		return settingsName + "__" + bitmapName;
 	}
 }

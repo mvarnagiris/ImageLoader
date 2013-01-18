@@ -3,7 +3,6 @@ package com.code44.imageloader.cache;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -277,7 +276,7 @@ public class ImageCache
 					Log.i(TAG, "Already in processed file cache. [" + imageInfo.toString() + "]");
 			}
 		}
-		catch (FileNotFoundException e)
+		catch (IOException e)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
 				Log.w(TAG, "Failed saving to file cache. [" + imageInfo.toString() + "]");
@@ -338,7 +337,7 @@ public class ImageCache
 	// Protected methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	protected boolean saveBitmapToFile(final Bitmap bitmap, final File bitmapFile) throws FileNotFoundException
+	protected boolean saveBitmapToFile(final Bitmap bitmap, final File bitmapFile) throws IOException
 	{
 		if (!bitmapFile.exists())
 		{

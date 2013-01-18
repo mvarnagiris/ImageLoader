@@ -185,7 +185,7 @@ public class ImageSettings
 	 */
 	public String getSettingsName()
 	{
-		return width + ";;" + height + ";;" + downSampleBy + ";;" + (imageProcessor == null ? "null" : imageProcessor.getUniqueId());
+		return width + "_" + height + "_" + downSampleBy + "_" + (imageProcessor == null ? "null" : imageProcessor.getUniqueId());
 	}
 
 	// Builder
