@@ -34,9 +34,9 @@ public abstract class ScaledBitmapParser extends BitmapParser
 				if (height > reqHeight || width > reqWidth)
 				{
 					if (height - reqHeight > width - reqWidth)
-						inSampleSize = Math.round((float) height / (float) reqHeight);
+						inSampleSize = (int) Math.floor((double) height / (double) reqHeight);
 					else
-						inSampleSize = Math.round((float) width / (float) reqWidth);
+						inSampleSize = (int) Math.floor((double) width / (double) reqWidth);
 				}
 				break;
 
@@ -45,9 +45,9 @@ public abstract class ScaledBitmapParser extends BitmapParser
 				if (height > reqHeight && width > reqWidth)
 				{
 					if (width - reqWidth > height - reqHeight)
-						inSampleSize = Math.round((float) height / (float) reqHeight);
+						inSampleSize = (int) Math.floor((double) height / (double) reqHeight);
 					else
-						inSampleSize = Math.round((float) width / (float) reqWidth);
+						inSampleSize = (int) Math.floor((double) width / (double) reqWidth);
 				}
 				break;
 
@@ -183,11 +183,14 @@ public abstract class ScaledBitmapParser extends BitmapParser
 					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
 
 					// Crop bitmap
-					tempBitmap = bitmap;
-					bitmap = Bitmap.createBitmap(tempBitmap, Math.max((bitmap.getWidth() - reqWidth) / 2, 0),
-							Math.max((bitmap.getHeight() - reqHeight) / 2, 0), reqWidth, reqHeight);
-					tempBitmap.recycle();
-					tempBitmap = null;
+					if (options.outWidth > reqWidth || options.outHeight > reqHeight)
+					{
+						tempBitmap = bitmap;
+						bitmap = Bitmap.createBitmap(tempBitmap, Math.max((bitmap.getWidth() - reqWidth) / 2, 0),
+								Math.max((bitmap.getHeight() - reqHeight) / 2, 0), reqWidth, reqHeight);
+						tempBitmap.recycle();
+						tempBitmap = null;
+					}
 					break;
 				}
 
