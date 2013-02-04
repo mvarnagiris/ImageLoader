@@ -33,6 +33,7 @@ public class ImageLoader
 	protected final ImageCache		imageCache;
 	protected final LoaderSettings	loaderSettings;
 	protected final ImageSettings	defaultImageSettings;
+	protected ImageLoaderListener	listener;
 
 	// Constructors
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -165,6 +166,11 @@ public class ImageLoader
 		}
 	}
 
+	public void setImageLoaderListener(ImageLoaderListener listener)
+	{
+		this.listener = listener;
+	}
+
 	// Protected methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -182,6 +188,8 @@ public class ImageLoader
 			imageView.setImageDrawable(td);
 			td.startTransition(300);
 		}
+		if (listener != null)
+			listener.onBitmapLoaded(imageView, imageInfo, bitmap);
 	}
 
 	// GetBitmapTask
@@ -303,5 +311,13 @@ public class ImageLoader
 		{
 			return imageInfo;
 		}
+	}
+
+	// Interface
+	// ------------------------------------------------------------------------------------------------------------------------------------
+
+	public static interface ImageLoaderListener
+	{
+		public void onBitmapLoaded(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap);
 	}
 }
