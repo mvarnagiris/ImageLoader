@@ -6,9 +6,6 @@ import java.util.concurrent.RejectedExecutionException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.TransitionDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
@@ -133,13 +130,17 @@ public class ImageLoader
 		final ImageInfo imageInfo = new ImageInfo(imageView, bitmapInfo, imageSettings, loaderSettings.isLoggingOn());
 
 		// Try to get bitmap from memory cache
-		Bitmap bitmap = imageCache.getFromMemory(imageInfo);
-		if (bitmap != null)
+		Bitmap bitmap = null;
+		if (imageInfo.getImageSettings().isUseMemoryCache())
 		{
-			if (isLoggingOn)
-				Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
-			setImage(imageView, imageInfo, bitmap);
-			return;
+			bitmap = imageCache.getFromMemory(imageInfo);
+			if (bitmap != null)
+			{
+				if (isLoggingOn)
+					Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
+				setImage(imageView, imageInfo, bitmap);
+				return;
+			}
 		}
 
 		// If bitmap was not found in cache and same work is not already running - load it
@@ -176,18 +177,7 @@ public class ImageLoader
 
 	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap)
 	{
-		final Drawable currentDrawable = imageView.getDrawable();
-		final Drawable newDrawable = new BitmapDrawable(context.getResources(), bitmap);
-		if (currentDrawable == null)
-		{
-			imageView.setImageDrawable(newDrawable);
-		}
-		else
-		{
-			TransitionDrawable td = new TransitionDrawable(new Drawable[] { currentDrawable, newDrawable });
-			imageView.setImageDrawable(td);
-			td.startTransition(300);
-		}
+		imageView.setImageBitmap(bitmap);
 		if (listener != null)
 			listener.onBitmapLoaded(imageView, imageInfo, bitmap);
 	}
@@ -208,14 +198,18 @@ public class ImageLoader
 		protected Bitmap doInBackground(Void... params)
 		{
 			final boolean isLoggingOn = imageInfo.isLoggingOn() && BuildConfig.DEBUG;
+			Bitmap bitmap = null;
 
 			// Try to get bitmap from memory
-			Bitmap bitmap = imageCache.getFromMemory(imageInfo);
-			if (isLoggingOn && bitmap != null)
-				Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
+			if (imageInfo.getImageSettings().isUseMemoryCache())
+			{
+				bitmap = imageCache.getFromMemory(imageInfo);
+				if (isLoggingOn && bitmap != null)
+					Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
+			}
 
 			// Try to get bitmap from file
-			if (bitmap == null && !isCancelled())
+			if (bitmap == null && !isCancelled() && imageInfo.getImageSettings().isUseFileCache())
 			{
 				bitmap = imageCache.getFromFile(imageInfo);
 				if (isLoggingOn && bitmap != null)
@@ -223,7 +217,7 @@ public class ImageLoader
 			}
 
 			// If bitmap was not found in file cache, try to get bitmap from original bitmap file
-			if (bitmap == null && !isCancelled())
+			if (bitmap == null && !isCancelled() && imageInfo.getImageSettings().isUseFileCache())
 			{
 				final File bitmapFile = imageCache.getOriginalFile(imageInfo);
 				if (bitmapFile != null)
@@ -273,9 +267,9 @@ public class ImageLoader
 			// Put to cache
 			if (bitmap != null)
 			{
-				if (imageCache.putToFile(imageInfo, bitmap) && isLoggingOn)
+				if (imageInfo.getImageSettings().isUseFileCache() && imageCache.putToFile(imageInfo, bitmap) && isLoggingOn)
 					Log.i(TAG, "Bitmap added to file cache. [" + imageInfo.toString() + "]");
-				if (imageCache.putToMemory(imageInfo, bitmap) && isLoggingOn)
+				if (imageInfo.getImageSettings().isUseMemoryCache() && imageCache.putToMemory(imageInfo, bitmap) && isLoggingOn)
 					Log.i(TAG, "Bitmap added to memory cache. [" + imageInfo.toString() + "]");
 			}
 
