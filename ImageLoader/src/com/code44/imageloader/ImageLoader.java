@@ -177,6 +177,8 @@ public class ImageLoader
 
 	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap)
 	{
+		if (bitmap == null)
+			Log.i("ASDASD", "NULL");
 		imageView.setImageBitmap(bitmap);
 		if (listener != null)
 			listener.onBitmapLoaded(imageView, imageInfo, bitmap);
@@ -288,17 +290,22 @@ public class ImageLoader
 		@Override
 		protected void onPostExecute(Bitmap bitmap)
 		{
+			final ImageView imageView = imageInfo.getImageView();
+
 			if (isCancelled())
 			{
+				imageView.setTag(null);
 				bitmap = null;
 				if (BuildConfig.DEBUG && imageInfo.isLoggingOn())
 					Log.i(TAG, "Bitmap load canceled. [" + imageInfo.toString() + "]");
 				return;
 			}
 
-			final ImageView imageView = imageInfo.getImageView();
 			if (imageView != null && bitmap != null && imageInfo.getGetBitmapTask() == this)
+			{
+				imageView.setTag(null);
 				setImage(imageView, imageInfo, bitmap);
+			}
 		}
 
 		// Public methods
