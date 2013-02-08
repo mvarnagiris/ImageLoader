@@ -198,6 +198,7 @@ public class ImageLoader
 		protected Bitmap doInBackground(Void... params)
 		{
 			final boolean isLoggingOn = imageInfo.isLoggingOn() && BuildConfig.DEBUG;
+			boolean needProcessing = false;
 			Bitmap bitmap = null;
 
 			// Try to get bitmap from memory
@@ -222,6 +223,7 @@ public class ImageLoader
 				final File bitmapFile = imageCache.getOriginalFile(imageInfo);
 				if (bitmapFile != null)
 				{
+					needProcessing = true;
 					if (isLoggingOn)
 						Log.i(TAG, "Bitmap original found in file cache. [" + imageInfo.toString() + "]");
 					bitmap = imageInfo.parseFileBitmapData(context, new FileBitmapData(bitmapFile, false));
@@ -244,6 +246,7 @@ public class ImageLoader
 						Log.i(TAG, "Bitmap parsed. [" + imageInfo.toString() + "]");
 					if (imageCache.putToFileOriginal(imageInfo, bitmapData.getFile()) && isLoggingOn)
 						Log.i(TAG, "Bitmap original stored in file. [" + imageInfo.toString() + "]");
+					needProcessing = true;
 
 					// Delete file if necessary
 					final File file = bitmapData.getFile();
@@ -257,7 +260,7 @@ public class ImageLoader
 
 			// Process bitmap
 			final ImageProcessor processor = imageInfo.getImageSettings().getImageProcessor();
-			if (bitmap != null && processor != null)
+			if (needProcessing && bitmap != null && processor != null)
 			{
 				bitmap = processor.processImage(bitmap);
 				if (isLoggingOn)
