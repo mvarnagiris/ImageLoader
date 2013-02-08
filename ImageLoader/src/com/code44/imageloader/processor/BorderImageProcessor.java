@@ -100,7 +100,11 @@ public class BorderImageProcessor implements ImageProcessor
 		canvas.drawRoundRect(bitmapRectDst, borderRadius, borderRadius, borderPaint);
 		canvas.drawBitmap(bitmap, null, bitmapRectDst, bitmapMaskPaint);
 		if (border != null)
+		{
 			canvas.drawBitmap(border, null, borderRect, null);
+			border.recycle();
+		}
+		bitmap.recycle();
 
 		return output;
 	}
