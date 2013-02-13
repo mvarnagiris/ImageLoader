@@ -15,7 +15,7 @@ public class BorderImageProcessor implements ImageProcessor
 	protected final Paint	bitmapPaint		= new Paint();
 
 	protected final int		boderColor;
-	protected final int		borderWidth;
+	protected final float	borderWidth;
 	protected final float	borderRadius;
 
 	protected final float	shadowRadius;
@@ -25,7 +25,7 @@ public class BorderImageProcessor implements ImageProcessor
 
 	private final String	uniqueId;
 
-	public BorderImageProcessor(int borderColor, int boderWidth, float borderRadius, float shadowRadius, float shadowDX, float shadowDY, int shadowColor)
+	public BorderImageProcessor(int borderColor, float boderWidth, float borderRadius, float shadowRadius, float shadowDX, float shadowDY, int shadowColor)
 	{
 		this.boderColor = borderColor;
 		this.borderWidth = boderWidth;
@@ -55,45 +55,47 @@ public class BorderImageProcessor implements ImageProcessor
 	@Override
 	public Bitmap processImage(Bitmap bitmap)
 	{
-		final int bWidth = bitmap.getWidth();
-		final int bHeight = bitmap.getHeight();
+		final float bWidth = bitmap.getWidth();
+		final float bHeight = bitmap.getHeight();
 
 		if (bWidth <= 0 || bHeight <= 0)
 			return bitmap;
 
-		final int bitmapL;
-		final int bitmapT;
-		final int bitmapR;
-		final int bitmapB;
-		if (shadowRadius > 0)
-		{
-			bitmapL = (int) (borderWidth + shadowRadius - shadowDX);
-			bitmapT = (int) (borderWidth + shadowRadius - shadowDY);
-			bitmapR = (int) (bWidth - borderWidth - shadowRadius - shadowDX);
-			bitmapB = (int) (bHeight - borderWidth - shadowRadius - shadowDY);
-		}
-		else
-		{
-			bitmapL = borderWidth;
-			bitmapT = borderWidth;
-			bitmapR = bWidth - borderWidth;
-			bitmapB = bHeight - borderWidth;
-		}
+		// Find new image constrain size
+		final float constraintW = bWidth - (shadowRadius * 2) - Math.max(0, shadowDX - shadowRadius) - (borderWidth * 2);
+		final float constraintH = bHeight - (shadowRadius * 2) - Math.max(0, shadowDY - shadowRadius) - (borderWidth * 2);
 
+		// Find scale and new image size
+		final float scale;
+		if (bWidth - constraintW > bHeight - constraintH)
+			scale = constraintW / bWidth;
+		else
+			scale = constraintH / bHeight;
+		final float newWidth = bWidth * scale;
+		final float newHeight = bHeight * scale;
+
+		// Find bitmap rect
+		final float bitmapL = Math.max(shadowRadius - shadowDX, 0) + borderWidth + ((constraintW - newWidth) / 2);
+		final float bitmapT = Math.max(shadowRadius - shadowDY, 0) + borderWidth + ((constraintH - newHeight) / 2);
+		final float bitmapR = bitmapL + newWidth;
+		final float bitmapB = bitmapT + newHeight;
 		final RectF bitmapRectDst = new RectF(bitmapL, bitmapT, bitmapR, bitmapB);
+
+		// Find border rect
 		final RectF borderRect = new RectF(bitmapL - borderWidth, bitmapT - borderWidth, bitmapR + borderWidth, bitmapB + borderWidth);
 
 		// Create rounded scaled bitmap
 		Canvas canvas;
-		final Bitmap roundedScaledBitmap = Bitmap.createBitmap(bWidth, bHeight, Config.ARGB_8888);
+		final Bitmap roundedScaledBitmap = Bitmap.createBitmap((int) bWidth, (int) bHeight, Config.ARGB_8888);
 		canvas = new Canvas(roundedScaledBitmap);
 		canvas.drawRoundRect(bitmapRectDst, borderRadius, borderRadius, bitmapMaskPaint);
 		canvas.drawBitmap(bitmap, null, bitmapRectDst, bitmapPaint);
 		bitmap.recycle();
 
 		// Draw border and shadow, then draw rounded scaled bitmap on top
+		bitmapRectDst.set(0, 0, bWidth, bHeight);
 		Bitmap output = null;
-		output = Bitmap.createBitmap(bWidth, bHeight, Config.ARGB_8888);
+		output = Bitmap.createBitmap((int) bWidth, (int) bHeight, Config.ARGB_8888);
 		canvas = new Canvas(output);
 		canvas.drawRoundRect(borderRect, borderRadius + borderWidth / 2, borderRadius + borderWidth / 2, borderPaint);
 		canvas.drawBitmap(roundedScaledBitmap, null, bitmapRectDst, null);
