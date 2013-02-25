@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.code44.imageloader.ImageLoader.GetBitmapTask;
@@ -23,10 +24,11 @@ import com.code44.imageloader.info.BitmapInfo;
  */
 public class ImageInfo
 {
-	protected final WeakReference<ImageView>	imageViewReference;
-	protected final BitmapInfo					bitmapInfo;
-	protected final ImageSettings				imageSettings;
-	protected final boolean						isLoggingOn;
+	protected final WeakReference<View>	viewReference;
+	protected final BitmapInfo			bitmapInfo;
+	protected final ImageSettings		imageSettings;
+	protected final boolean				isImageView;
+	protected final boolean				isLoggingOn;
 
 	/**
 	 * Constructor
@@ -38,13 +40,16 @@ public class ImageInfo
 	 * @param imageSettings
 	 *            Various settings that change behavior how bitmap is loaded.
 	 * @param isLoggingOn
+	 *            Flag that tells how to set an image.
+	 * @param isLoggingOn
 	 *            Flag to turn on/off logging.
 	 */
-	public ImageInfo(ImageView imageView, BitmapInfo bitmapInfo, ImageSettings imageSettings, boolean isLoggingOn)
+	public ImageInfo(View view, BitmapInfo bitmapInfo, ImageSettings imageSettings, boolean isImageView, boolean isLoggingOn)
 	{
-		this.imageViewReference = new WeakReference<ImageView>(imageView);
+		this.viewReference = new WeakReference<View>(view);
 		this.bitmapInfo = bitmapInfo;
 		this.imageSettings = imageSettings;
+		this.isImageView = isImageView;
 		this.isLoggingOn = isLoggingOn;
 	}
 
@@ -89,14 +94,14 @@ public class ImageInfo
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
 	/**
-	 * ImageView is stored using {@link WeakReference} so it might be already recycled.
+	 * View is stored using {@link WeakReference} so it might be already recycled.
 	 * 
-	 * @return {@link ImageView} or {@code null}.
+	 * @return {@link View} or {@code null}.
 	 */
-	public ImageView getImageView()
+	public View getView()
 	{
-		if (imageViewReference != null)
-			return imageViewReference.get();
+		if (viewReference != null)
+			return viewReference.get();
 
 		return null;
 	}
@@ -115,6 +120,14 @@ public class ImageInfo
 	public ImageSettings getImageSettings()
 	{
 		return imageSettings;
+	}
+
+	/**
+	 * @return {@code true} if view is an instance of {@link ImageView}; {@code false} otherwise.
+	 */
+	public boolean isImageView()
+	{
+		return isImageView;
 	}
 
 	/**
@@ -187,11 +200,11 @@ public class ImageInfo
 	}
 
 	/**
-	 * @return {@link GetBitmapTask} or {@code null} if {@link ImageView} has been recycled.
+	 * @return {@link GetBitmapTask} or {@code null} if {@link View} has been recycled.
 	 */
 	public GetBitmapTask getGetBitmapTask()
 	{
-		ImageView imageView = getImageView();
+		View imageView = getView();
 		if (imageView != null)
 			return (GetBitmapTask) imageView.getTag();
 

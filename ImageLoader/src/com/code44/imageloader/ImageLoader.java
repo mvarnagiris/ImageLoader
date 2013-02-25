@@ -6,9 +6,11 @@ import java.util.concurrent.RejectedExecutionException;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import com.code44.imageloader.cache.ImageCache;
@@ -24,7 +26,10 @@ import com.code44.imageloader.processor.ImageProcessor;
  */
 public class ImageLoader
 {
-	public static final String		TAG	= "ImageLoader";
+	private static final boolean	SUPPORTS_JELLYBEAN	= android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN;
+	private static final boolean	SUPPORTS_HONEYCOMB	= android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB;
+
+	public static final String		TAG					= "ImageLoader";
 
 	protected final Context			context;
 	protected final ImageCache		imageCache;
@@ -98,8 +103,35 @@ public class ImageLoader
 	 * @param bitmapInfo
 	 * @param imageSettings
 	 */
-	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
 	public void loadImage(final ImageView imageView, final BitmapInfo bitmapInfo, ImageSettings imageSettings)
+	{
+		loadImage(imageView, bitmapInfo, imageSettings, true);
+	}
+
+	/**
+	 * Use this to load view's background.
+	 * 
+	 * @param view
+	 * @param bitmapInfo
+	 * @param imageSettings
+	 */
+	public void loadBackground(final View view, final BitmapInfo bitmapInfo, ImageSettings imageSettings)
+	{
+		loadImage(view, bitmapInfo, imageSettings, false);
+	}
+
+	/**
+	 * Use this to load image or background.
+	 * 
+	 * @param imageView
+	 * @param bitmapInfo
+	 * @param imageSettings
+	 * @param isImageView
+	 *            If {@code true}, then image will be set as for image view, else - background value will be set.
+	 */
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	@SuppressWarnings("deprecation")
+	public void loadImage(final View view, final BitmapInfo bitmapInfo, ImageSettings imageSettings, boolean isImageView)
 	{
 		final boolean isLoggingOn = BuildConfig.DEBUG && loaderSettings.isLoggingOn();
 
@@ -108,12 +140,24 @@ public class ImageLoader
 			imageSettings = defaultImageSettings;
 
 		// Check if we can start image loading
-		if (imageView == null || bitmapInfo == null)
+		if (view == null || bitmapInfo == null)
 		{
 			if (isLoggingOn)
 				Log.w(TAG, "ImageView or BitmapInfo is null. Loading will not start.");
-			if (imageView != null)
-				imageView.setImageDrawable(imageSettings.errorDrawable);
+			if (view != null)
+			{
+				if (isImageView)
+				{
+					((ImageView) view).setImageDrawable(imageSettings.getErrorDrawable());
+				}
+				else
+				{
+					if (SUPPORTS_JELLYBEAN)
+						view.setBackground(imageSettings.getErrorDrawable());
+					else
+						view.setBackgroundDrawable(imageSettings.getErrorDrawable());
+				}
+			}
 			return;
 		}
 
@@ -122,12 +166,23 @@ public class ImageLoader
 		{
 			if (isLoggingOn)
 				Log.w(TAG, "BitmapInfo check failed. Setting error drawable. [" + bitmapInfo.toString() + "]");
-			imageView.setImageDrawable(imageSettings.getErrorDrawable());
+
+			if (isImageView)
+			{
+				((ImageView) view).setImageDrawable(imageSettings.getErrorDrawable());
+			}
+			else
+			{
+				if (SUPPORTS_JELLYBEAN)
+					view.setBackground(imageSettings.getErrorDrawable());
+				else
+					view.setBackgroundDrawable(imageSettings.getErrorDrawable());
+			}
 			return;
 		}
 
 		// Create ImageInfo
-		final ImageInfo imageInfo = new ImageInfo(imageView, bitmapInfo, imageSettings, loaderSettings.isLoggingOn());
+		final ImageInfo imageInfo = new ImageInfo(view, bitmapInfo, imageSettings, isImageView, loaderSettings.isLoggingOn());
 
 		// Try to get bitmap from memory cache
 		Bitmap bitmap = null;
@@ -138,7 +193,7 @@ public class ImageLoader
 			{
 				if (isLoggingOn)
 					Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
-				setImage(imageView, imageInfo, bitmap);
+				setImage(view, imageInfo, bitmap);
 				return;
 			}
 		}
@@ -148,13 +203,25 @@ public class ImageLoader
 		{
 			// Set loading drawable if necessary
 			if (bitmap == null)
-				imageView.setImageDrawable(imageSettings.getLoadingDrawable());
+			{
+				if (isImageView)
+				{
+					((ImageView) view).setImageDrawable(imageSettings.getLoadingDrawable());
+				}
+				else
+				{
+					if (SUPPORTS_JELLYBEAN)
+						view.setBackground(imageSettings.getLoadingDrawable());
+					else
+						view.setBackgroundDrawable(imageSettings.getLoadingDrawable());
+				}
+			}
 
 			try
 			{
 				final GetBitmapTask task = new GetBitmapTask(imageInfo);
-				imageView.setTag(task);
-				if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB)
+				view.setTag(task);
+				if (SUPPORTS_HONEYCOMB)
 					task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void) null);
 				else
 					task.execute();
@@ -175,13 +242,23 @@ public class ImageLoader
 	// Protected methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	protected void setImage(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap)
+	@SuppressWarnings("deprecation")
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	protected void setImage(View view, ImageInfo imageInfo, Bitmap bitmap)
 	{
-		if (bitmap == null)
-			Log.i("ASDASD", "NULL");
-		imageView.setImageBitmap(bitmap);
+		if (imageInfo.isImageView)
+		{
+			((ImageView) view).setImageBitmap(bitmap);
+		}
+		else
+		{
+			if (SUPPORTS_JELLYBEAN)
+				view.setBackground(new BitmapDrawable(context.getResources(), bitmap));
+			else
+				view.setBackgroundDrawable(new BitmapDrawable(context.getResources(), bitmap));
+		}
 		if (listener != null)
-			listener.onBitmapLoaded(imageView, imageInfo, bitmap);
+			listener.onBitmapLoaded(view, imageInfo, bitmap, imageInfo.isImageView());
 	}
 
 	// GetBitmapTask
@@ -290,21 +367,21 @@ public class ImageLoader
 		@Override
 		protected void onPostExecute(Bitmap bitmap)
 		{
-			final ImageView imageView = imageInfo.getImageView();
+			final View view = imageInfo.getView();
 
 			if (isCancelled())
 			{
-				imageView.setTag(null);
+				view.setTag(null);
 				bitmap = null;
 				if (BuildConfig.DEBUG && imageInfo.isLoggingOn())
 					Log.i(TAG, "Bitmap load canceled. [" + imageInfo.toString() + "]");
 				return;
 			}
 
-			if (imageView != null && bitmap != null && imageInfo.getGetBitmapTask() == this)
+			if (view != null && bitmap != null && imageInfo.getGetBitmapTask() == this)
 			{
-				imageView.setTag(null);
-				setImage(imageView, imageInfo, bitmap);
+				view.setTag(null);
+				setImage(view, imageInfo, bitmap);
 			}
 		}
 
@@ -322,6 +399,6 @@ public class ImageLoader
 
 	public static interface ImageLoaderListener
 	{
-		public void onBitmapLoaded(ImageView imageView, ImageInfo imageInfo, Bitmap bitmap);
+		public void onBitmapLoaded(View imageView, ImageInfo imageInfo, Bitmap bitmap, boolean isImageView);
 	}
 }
