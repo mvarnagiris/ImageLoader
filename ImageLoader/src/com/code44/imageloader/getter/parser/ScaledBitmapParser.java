@@ -69,9 +69,8 @@ public abstract class ScaledBitmapParser extends BitmapParser
 			{
 				if (width > reqWidth || height > reqHeight)
 				{
-					if (width - reqWidth > height - reqHeight)
-						scale = (float) reqWidth / (float) width;
-					else
+					scale = (float) reqWidth / (float) width;
+					if (scale * (float) height > reqHeight)
 						scale = (float) reqHeight / (float) height;
 				}
 				break;
@@ -82,9 +81,8 @@ public abstract class ScaledBitmapParser extends BitmapParser
 			{
 				if (width > reqWidth && height > reqHeight)
 				{
-					if (height - reqHeight > width - reqWidth)
-						scale = (float) reqWidth / (float) width;
-					else
+					scale = (float) reqWidth / (float) width;
+					if (scale * (float) height < reqHeight)
 						scale = (float) reqHeight / (float) height;
 				}
 				break;
