@@ -122,7 +122,7 @@ public class ImageLoader
 	/**
 	 * Use this to load image or background.
 	 * 
-	 * @param imageView
+	 * @param view
 	 * @param bitmapInfo
 	 * @param imageSettings
 	 * @param isImageView
@@ -230,6 +230,70 @@ public class ImageLoader
 				if (isLoggingOn)
 					Log.e(TAG, "Failed to start loading. [" + imageInfo.toString() + "]", e);
 			}
+		}
+	}
+
+	/**
+	 * Use this to pre-cache images.
+	 * 
+	 * @param bitmapInfo
+	 * @param imageSettings
+	 * @param isImageView
+	 *            If {@code true}, then image will be set as for image view, else - background value will be set.
+	 */
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public void preCacheImage(final BitmapInfo bitmapInfo, ImageSettings imageSettings)
+	{
+		final boolean isLoggingOn = BuildConfig.DEBUG && loaderSettings.isLoggingOn();
+
+		// Use default settings if they are not provided
+		if (imageSettings == null)
+			imageSettings = defaultImageSettings;
+
+		// Check if we can start image loading
+		if (bitmapInfo == null)
+		{
+			if (isLoggingOn)
+				Log.w(TAG, "BitmapInfo is null. Loading will not start.");
+			return;
+		}
+
+		// Check if bitmap info has correct data
+		if (!bitmapInfo.checkInfo())
+		{
+			if (isLoggingOn)
+				Log.w(TAG, "BitmapInfo check failed. Setting error drawable. [" + bitmapInfo.toString() + "]");
+			return;
+		}
+
+		// Create ImageInfo
+		final ImageInfo imageInfo = new ImageInfo(null, bitmapInfo, imageSettings, false, loaderSettings.isLoggingOn());
+
+		// Try to get bitmap from memory cache
+		Bitmap bitmap = null;
+		if (imageInfo.getImageSettings().isUseMemoryCache())
+		{
+			bitmap = imageCache.getFromMemory(imageInfo);
+			if (bitmap != null)
+			{
+				if (isLoggingOn)
+					Log.i(TAG, "Bitmap found in memory cache. [" + imageInfo.toString() + "]");
+				return;
+			}
+		}
+
+		try
+		{
+			final GetBitmapTask task = new GetBitmapTask(imageInfo);
+			if (SUPPORTS_HONEYCOMB)
+				task.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void) null);
+			else
+				task.execute();
+		}
+		catch (RejectedExecutionException e)
+		{
+			if (isLoggingOn)
+				Log.e(TAG, "Failed to start loading. [" + imageInfo.toString() + "]", e);
 		}
 	}
 
