@@ -5,18 +5,18 @@ import java.io.File;
 import com.code44.imageloader.getter.parser.BitmapParser;
 
 /**
- * Contains information about bitmap in file. {@link BitmapParser} should take care of file decoding.
+ * Contains information about bitmap in resource. {@link BitmapParser} should take care of resource decoding.
  * 
  * @author Mantas Varnagiris
  */
-public class FileBitmapData extends BitmapData
+public class ResourceBitmapData extends BitmapData
 {
-	private final File	file;
+	private final int	resId;
 
-	public FileBitmapData(File file, boolean deleteFile)
+	public ResourceBitmapData(int resId)
 	{
-		super(deleteFile);
-		this.file = file;
+		super(false);
+		this.resId = resId;
 	}
 
 	// BitmapData
@@ -25,14 +25,14 @@ public class FileBitmapData extends BitmapData
 	@Override
 	public File getFileForOriginalCache()
 	{
-		return file;
+		return null;
 	}
 
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	public boolean isDeleteFile()
+	public int getResId()
 	{
-		return deleteFile;
+		return resId;
 	}
 }

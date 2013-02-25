@@ -5,31 +5,32 @@ import java.io.File;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BitmapFactory.Options;
+import android.view.View;
 
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.getter.data.BitmapData;
-import com.code44.imageloader.getter.data.FileBitmapData;
+import com.code44.imageloader.info.ResourceBitmapInfo;
 
 /**
- * Decodes scaled bitmap from file. Also deletes file if necessary.
+ * Decodes scaled bitmap from resource.
  * 
  * @author Mantas Varnagiris
  */
-public class FileBitmapParser extends ScaledBitmapParser
+public class ResourceBitmapParser extends ScaledBitmapParser
 {
 	// Singleton
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
-	private static FileBitmapParser	instance;
+	private static ResourceBitmapParser	instance;
 
-	public static FileBitmapParser getDefault()
+	public static ResourceBitmapParser getDefault()
 	{
 		if (instance == null)
-			instance = new FileBitmapParser();
+			instance = new ResourceBitmapParser();
 		return instance;
 	}
 
-	protected FileBitmapParser()
+	protected ResourceBitmapParser()
 	{
 	}
 
@@ -39,15 +40,16 @@ public class FileBitmapParser extends ScaledBitmapParser
 	@Override
 	protected Bitmap decodeBitmap(ImageInfo imageInfo, BitmapData bitmapData, Options options)
 	{
-		final File bitmapFile = ((FileBitmapData) bitmapData).getFileForOriginalCache();
-		if (bitmapFile.exists())
-			return BitmapFactory.decodeFile(bitmapFile.getAbsolutePath(), options);
+		final int resId = ((ResourceBitmapInfo) imageInfo.getBitmapInfo()).getResId();
+		final View view = imageInfo.getView();
+		if (resId > 0 && view != null)
+			return BitmapFactory.decodeResource(view.getContext().getResources(), resId, options);
 		return null;
 	}
 
 	@Override
 	public Bitmap parseFromFile(ImageInfo imageInfo, File file)
 	{
-		return parseBitmap(imageInfo, new FileBitmapData(file, false));
+		return null;
 	}
 }

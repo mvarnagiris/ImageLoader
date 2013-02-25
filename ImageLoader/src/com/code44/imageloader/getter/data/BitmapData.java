@@ -41,7 +41,7 @@ public abstract class BitmapData
 	/**
 	 * This is used whenever original file cache is used. Create a temporary file here if necessary.
 	 * 
-	 * @return {@link File}.
+	 * @return {@link File} or {@code null} if you don't want to use original file cache.
 	 */
-	public abstract File getFile();
+	public abstract File getFileForOriginalCache();
 }

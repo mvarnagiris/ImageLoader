@@ -1,11 +1,12 @@
 package com.code44.imageloader.getter.parser;
 
+import java.io.File;
+
 import android.graphics.Bitmap;
 
 import com.code44.imageloader.ImageInfo;
 import com.code44.imageloader.ImageLoader;
 import com.code44.imageloader.getter.data.BitmapData;
-import com.code44.imageloader.getter.data.FileBitmapData;
 
 /**
  * Interface that defines how {@link BitmapData} is transformed into {@link Bitmap}.
@@ -30,5 +31,13 @@ public abstract class BitmapParser
 	 */
 	public abstract Bitmap parseBitmap(ImageInfo imageInfo, BitmapData bitmapData);
 
-	public abstract Bitmap parseBitmapFromFile(ImageInfo imageInfo, FileBitmapData bitmapData);
+	/**
+	 * Parse {@link File} into {@link Bitmap} here. If you don't want to user original file cache, just return {@code null}.
+	 * 
+	 * @param imageInfo
+	 * @param file
+	 *            {@link File} from original file cache.
+	 * @return {@link Bitmap}.
+	 */
+	public abstract Bitmap parseFromFile(ImageInfo imageInfo, File file);
 }

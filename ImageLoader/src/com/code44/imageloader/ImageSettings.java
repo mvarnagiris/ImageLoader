@@ -35,6 +35,7 @@ public class ImageSettings
 	protected SizeType			sizeType		= SizeType.FILL_CROP;
 	protected boolean			useMemoryCache	= true;
 	protected boolean			useFileCache	= true;
+	protected boolean			useFileOriginal	= true;
 
 	// Object
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -173,6 +174,16 @@ public class ImageSettings
 	public boolean isUseFileCache()
 	{
 		return useFileCache;
+	}
+
+	public void setUseFileOriginal(boolean useFileOriginal)
+	{
+		this.useFileOriginal = useFileOriginal;
+	}
+
+	public boolean isUseFileOriginal()
+	{
+		return useFileOriginal;
 	}
 
 	// Public methods

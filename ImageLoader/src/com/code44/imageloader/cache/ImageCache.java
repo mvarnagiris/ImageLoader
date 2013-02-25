@@ -255,10 +255,8 @@ public class ImageCache
 		if (bitmap == null)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
-			{
 				Log.w(TAG, "Cannot put null to processed file cache [" + imageInfo.toString() + "]");
-				return false;
-			}
+			return false;
 		}
 
 		// Try save bitmap to file
@@ -301,10 +299,9 @@ public class ImageCache
 		if (file == null)
 		{
 			if (BuildConfig.DEBUG && cacheSettings.isLoggingOn())
-			{
 				Log.w(TAG, "Cannot put null to original file cache [" + imageInfo.toString() + "]");
-				return false;
-			}
+
+			return false;
 		}
 
 		// Copy file
