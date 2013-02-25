@@ -258,7 +258,7 @@ public class ImageLoader
 				view.setBackgroundDrawable(new BitmapDrawable(context.getResources(), bitmap));
 		}
 		if (listener != null)
-			listener.onBitmapLoaded(view, imageInfo, bitmap, imageInfo.isImageView());
+			listener.onBitmapLoaded(view, imageInfo, bitmap);
 	}
 
 	// GetBitmapTask
@@ -399,6 +399,6 @@ public class ImageLoader
 
 	public static interface ImageLoaderListener
 	{
-		public void onBitmapLoaded(View imageView, ImageInfo imageInfo, Bitmap bitmap, boolean isImageView);
+		public void onBitmapLoaded(View imageView, ImageInfo imageInfo, Bitmap bitmap);
 	}
 }
