@@ -340,6 +340,7 @@ public class ImageCache
 		{
 			FileOutputStream fos = new FileOutputStream(bitmapFile, false);
 			bitmap.compress(DEFAULT_COMPRESS_FORMAT, DEFAULT_COMPRESS_QUALITY, fos);
+			fos.close();
 			return true;
 		}
 		return false;
