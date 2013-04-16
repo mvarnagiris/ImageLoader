@@ -184,8 +184,9 @@ public abstract class ScaledBitmapParser extends BitmapParser
 					if (options.outWidth > reqWidth || options.outHeight > reqHeight)
 					{
 						tempBitmap = bitmap;
-						bitmap = Bitmap.createBitmap(tempBitmap, Math.max((options.outWidth - reqWidth) / 2, 0),
-								Math.max((options.outHeight - reqHeight) / 2, 0), Math.min(reqWidth, options.outWidth), Math.min(reqHeight, options.outHeight));
+						bitmap = Bitmap.createBitmap(tempBitmap, Math.max((tempBitmap.getWidth() - reqWidth) / 2, 0),
+								Math.max((tempBitmap.getHeight() - reqHeight) / 2, 0), Math.min(reqWidth, tempBitmap.getWidth()),
+								Math.min(reqHeight, tempBitmap.getHeight()));
 						tempBitmap.recycle();
 						tempBitmap = null;
 					}
