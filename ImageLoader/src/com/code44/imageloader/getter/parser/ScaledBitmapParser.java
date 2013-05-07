@@ -58,7 +58,7 @@ public abstract class ScaledBitmapParser extends BitmapParser
 		return inSampleSize + downSampleBy;
 	}
 
-	protected Bitmap createScaledBitmap(Bitmap bitmap, int width, int height, int reqWidth, int reqHeight, SizeType sizeType)
+	protected Bitmap createScaledBitmap(Bitmap bitmap, int width, int height, int reqWidth, int reqHeight, SizeType sizeType, boolean scaleUp)
 	{
 		Bitmap newBitmap = null;
 
@@ -67,7 +67,7 @@ public abstract class ScaledBitmapParser extends BitmapParser
 		{
 			case MAX:
 			{
-				if (width > reqWidth || height > reqHeight)
+				if ((scaleUp && (width != reqWidth || height != reqHeight)) || width > reqWidth || height > reqHeight)
 				{
 					scale = (float) reqWidth / (float) width;
 					if (scale * (float) height > reqHeight)
@@ -79,7 +79,7 @@ public abstract class ScaledBitmapParser extends BitmapParser
 			case FILL:
 			case FILL_CROP:
 			{
-				if (width > reqWidth && height > reqHeight)
+				if ((scaleUp && (width != reqWidth && height != reqHeight)) || (width > reqWidth && height > reqHeight))
 				{
 					scale = (float) reqWidth / (float) width;
 					if (scale * (float) height < reqHeight)
@@ -164,24 +164,24 @@ public abstract class ScaledBitmapParser extends BitmapParser
 				case MAX:
 				{
 					// Scale bitmap
-					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.isScaleUp());
 					break;
 				}
 
 				case FILL:
 				{
 					// Scale bitmap
-					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.isScaleUp());
 					break;
 				}
 
 				case FILL_CROP:
 				{
 					// Scale bitmap
-					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType);
+					bitmap = createScaledBitmap(tempBitmap, options.outWidth, options.outHeight, reqWidth, reqHeight, sizeType, settings.isScaleUp());
 
 					// Crop bitmap
-					if (options.outWidth > reqWidth || options.outHeight > reqHeight)
+					if (bitmap.getWidth() > reqWidth || bitmap.getHeight() > reqHeight)
 					{
 						tempBitmap = bitmap;
 						bitmap = Bitmap.createBitmap(tempBitmap, Math.max((tempBitmap.getWidth() - reqWidth) / 2, 0),

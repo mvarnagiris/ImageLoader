@@ -36,6 +36,7 @@ public class ImageSettings
 	protected boolean			useMemoryCache	= true;
 	protected boolean			useFileCache	= true;
 	protected boolean			useFileOriginal	= true;
+	protected boolean			scaleUp			= true;
 
 	// Object
 	// ------------------------------------------------------------------------------------------------------------------------------------
@@ -58,7 +59,7 @@ public class ImageSettings
 				&& (errorDrawable != null && errorDrawable.equals(imageSettings.errorDrawable))
 				&& (imageProcessor != null && imageSettings.imageProcessor != null && imageProcessor.getUniqueId().equals(
 						imageSettings.imageProcessor.getUniqueId())) && sizeType.ordinal() == imageSettings.sizeType.ordinal()
-				&& useMemoryCache == imageSettings.useMemoryCache && useFileCache == imageSettings.useFileCache;
+				&& useMemoryCache == imageSettings.useMemoryCache && useFileCache == imageSettings.useFileCache && scaleUp == imageSettings.scaleUp;
 	}
 
 	@Override
@@ -76,6 +77,7 @@ public class ImageSettings
 		result = prime * result + sizeType.ordinal();
 		result = prime * result + (useMemoryCache ? 1 : 0);
 		result = prime * result + (useFileCache ? 1 : 0);
+		result = prime * result + (scaleUp ? 1 : 0);
 
 		return result;
 	}
@@ -186,6 +188,16 @@ public class ImageSettings
 		return useFileOriginal;
 	}
 
+	public void setScaleUp(boolean scaleUp)
+	{
+		this.scaleUp = scaleUp;
+	}
+
+	public boolean isScaleUp()
+	{
+		return scaleUp;
+	}
+
 	// Public methods
 	// ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -196,7 +208,7 @@ public class ImageSettings
 	 */
 	public String getSettingsName()
 	{
-		return width + "_" + height + "_" + downSampleBy + "_" + (imageProcessor == null ? "null" : imageProcessor.getUniqueId());
+		return width + "_" + height + "_" + downSampleBy + "_" + scaleUp + "_" + (imageProcessor == null ? "null" : imageProcessor.getUniqueId());
 	}
 
 	// Builder
@@ -262,6 +274,12 @@ public class ImageSettings
 		public Builder withUseFileCache(boolean useFileCache)
 		{
 			imageSettings.useFileCache = useFileCache;
+			return this;
+		}
+
+		public Builder withScaleUp(boolean scaleUp)
+		{
+			imageSettings.scaleUp = scaleUp;
 			return this;
 		}
 	}
